@@ -55,20 +55,10 @@ void(__thiscall* OriginalBipedModelUpdateWeapon)(ValidBip01Names*, TESObjectWEAP
 UInt8(__thiscall* ContChangesEntry_GetWeaponModFlags)(ContChangesEntry* weapEntry) = (UInt8(__thiscall*)(ContChangesEntry*)) 0x4BD820;
 std::unordered_set<BYTE> SaveGameUMap;
 uintptr_t FNVCanSaveOriginalCall = 0;
-uintptr_t FNVCanSaveMenuOriginalCall = 0;
+
 bool __fastcall HookCanSaveNow(void* ThisObj, void* edx, int isAutoSave)
 {
 
-	return ThisStdCall_B(FNVCanSaveOriginalCall, ThisObj, isAutoSave) && SaveGameUMap.empty();
-
-}
-
-bool __fastcall HookCanSaveNowMenu(void* ThisObj, void* edx, int isAutoSave)
-{
-
-	return ThisStdCall_B(FNVCanSaveMenuOriginalCall, ThisObj, isAutoSave) && SaveGameUMap.empty();
-
-}
 void __fastcall hk_BipedModel_UpdateWeapon(ValidBip01Names* BipedAnim, Character* fnCharacter, TESObjectWEAP* weap, int weapMods)
 {
 
