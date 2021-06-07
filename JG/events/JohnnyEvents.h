@@ -448,35 +448,6 @@ bool Cmd_SetJohnnyOnRenderUpdateEventHandler_Execute(COMMAND_ARGS)
 	}
 }
 
-bool Cmd_SetJohnnyOnRenderUpdateEventHandler_Execute(COMMAND_ARGS)
-{
-	UInt32 setOrRemove = 0;
-	Script* script = NULL;
-	UInt32 flags = 0;
-	enum EnumFlags {
-		kDoNotFireInRenderMenu = 1 << 0,
-		kDoNotFireInGameMode = 1 << 1,
-	};
-	if (!(ExtractArgsEx(EXTRACT_ARGS_EX, &setOrRemove, &script, &flags) || NOT_TYPE(script, Script))) return true;
-	{
-		if (!(flags & kDoNotFireInGameMode) && OnRenderGameModeUpdateHandler)
-		{
-			if (setOrRemove)
-				OnRenderGameModeUpdateHandler->RegisterEvent(script, NULL);
-			else OnRenderGameModeUpdateHandler->RemoveEvent(script, NULL);
-
-		}
-
-		if (!(flags & kDoNotFireInRenderMenu) && OnRenderRenderedMenuUpdateHandler)
-		{
-			if (setOrRemove)
-				OnRenderRenderedMenuUpdateHandler->RegisterEvent(script, NULL);
-			else OnRenderRenderedMenuUpdateHandler->RemoveEvent(script, NULL);
-
-		}
-		return true;
-	}
-}
 
 void HandleEventHooks()
 {
