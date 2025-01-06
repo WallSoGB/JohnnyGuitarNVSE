@@ -28,7 +28,7 @@ DEFINE_COMMAND_PLUGIN(GetOptionalBone, , 1, 1, kParams_OneInt);
 DEFINE_COMMAND_PLUGIN(TriggerScreenSplatterEx, , 0, 8, kSplatterParams);
 DEFINE_COMMAND_PLUGIN(SetViewmodelClipDistance, , 0, 1, kParams_OneFloat);
 DEFINE_COMMAND_PLUGIN(GetViewmodelClipDistance, , 0, 0, NULL);
-DEFINE_COMMAND_PLUGIN(SetBlockTransform, , 1, 8, kTransformParams);
+DEFINE_COMMAND_PLUGIN(SetBlockTransform, , 1, 9, kTransformParams);
 DEFINE_CMD_NO_ARGS(DumpIconMap);
 DEFINE_CMD_NO_ARGS(RollCredits);
 DEFINE_CMD_NO_ARGS(GetAllGameRadios);
@@ -673,24 +673,74 @@ bool Cmd_GetViewmodelClipDistance_Execute(COMMAND_ARGS) {
 
 static NiPointer<NiAVObject> lastBlock = nullptr;
 static TESForm* lastForm = nullptr;
+static bool lastCallWas1stPerson = false;
+
+enum TransformOperation {
+	NONE		= 0,
+	TRANSLATE	= 1 << 0,
+	ROTATE		= 1 << 1,
+	SCALE		= 1 << 2,
+};
+
+void HandleRotation(NiAVObject* object, NiVector3& data, UInt32 operation) {
+	NiMatrix33 rotMatrix;
+	switch (operation){
+	case 0:
+		rotMatrix.FromEulerAnglesXYZ(data.x * 0.017453292f, data.y * 0.017453292f, data.z * 0.017453292f);
+		object->m_local.rotate = rotMatrix;
+		break;
+	case 1:
+		rotMatrix.FromEulerAnglesXYZ(data.x * 0.017453292f, data.y * 0.017453292f, data.z * 0.017453292f);
+		object->m_local.rotate *= rotMatrix;
+		break;
+	default:
+		break;
+	}
+}
+
+void HandleTranslation(NiAVObject* object, NiVector3& data, UInt32 operation) {
+	switch (operation) {
+	case 0:
+		object->m_local.translate = data;
+		break;
+	case 1:
+		object->m_local.translate += data;
+	case 2:
+		object->m_local.translate += object->m_world.rotate * data;
+	default:
+		break;
+	}
+}
 
 bool Cmd_SetBlockTransform_Execute(COMMAND_ARGS) {
-	float x, y, z, w;
-	bool rotate = false;
-	bool update = false;
-	bool world = false;
-	bool local = false;
-	char blockName[128];
+	NiVector3 data;
+	float scale;
+	UInt32 operation = 0;
+	UInt32 operationModifer = 0;
+	UInt32 update = 0;
+	UInt32 player1stPerson = 0;
+	char blockName[128] = {};
+
+	if (lastBlock.m_pObject && lastBlock.m_pObject->m_uiRefCount == 1)
+		lastBlock = nullptr;
 
 	*result = false;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &blockName, &x, &y, &z, &w, &rotate, &world, &update)) {
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &blockName, &data.x, &data.y, &data.z, &scale, &operation, &operationModifer, &update, &player1stPerson)) {
 		NiAVObject* object = nullptr;
-		if (lastForm == thisObj && !strcmp(lastBlock.m_pObject->m_blockName.handle, blockName)) {
+		if (player1stPerson && !lastCallWas1stPerson)
+			lastBlock = nullptr;
+
+		if (lastBlock.m_pObject && lastForm == thisObj && !strcmp(lastBlock->m_blockName.handle, blockName)) {
 			object = lastBlock;
 		}
 		else {
 			lastForm = thisObj;
-			NiNode* refNode = thisObj->GetRefNiNode();
+			NiNode* refNode = nullptr;
+			if (player1stPerson)
+				refNode = ((PlayerCharacter*)thisObj)->GetNode(true);
+			else
+				refNode = thisObj->GetRefNiNode();
+
 			if (!refNode)
 				return true;
 
@@ -700,36 +750,27 @@ bool Cmd_SetBlockTransform_Execute(COMMAND_ARGS) {
 
 			lastBlock = object;
 		}
-		if (world) {
-			if (rotate) {
-				// NiMatrix3::FromEulerAnglesXYZ
-				ThisStdCall(0xA59540, &object->m_world.rotate, x, y, z);
+
+		if (operation) {
+			if ((operation & TransformOperation::ROTATE) != 0) {
+				HandleRotation(object, data, operationModifer);
 			}
-			else {
-				object->m_world.translate.x = x;
-				object->m_world.translate.y = y;
-				object->m_world.translate.z = z;
+			else if ((operation & TransformOperation::TRANSLATE) != 0) {
+				HandleTranslation(object, data, operationModifer);
 			}
 
-			object->m_world.scale = w;
+			if ((operation & TransformOperation::SCALE) != 0)
+				object->m_local.scale = scale;
 		}
-		else {
-			if (rotate) {
-				// NiMatrix3::FromEulerAnglesXYZ
-				ThisStdCall(0xA59540, &object->m_local.rotate, x, y, z);
-			}
-			else {
-				object->m_local.translate.x = x;
-				object->m_local.translate.y = y;
-				object->m_local.translate.z = z;
-			}
 
-			object->m_local.scale = w;
-		}
+		lastCallWas1stPerson = player1stPerson;
 
 		if (update) {
+			if (!thisObj->IsActor())
+				CdeclCall(0xC6BD00, object, true); // bhkNiCollisionObject::ResetSim
+
 			NiUpdateData updateData;
-			object->Update(updateData);
+			object->UpdateTransformAndBounds(updateData);
 		}
 		*result = true;
 	}

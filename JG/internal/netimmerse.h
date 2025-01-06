@@ -62,9 +62,48 @@ public:
 		else
 			handle = nullptr;
 	};
-	~NiFixedString() {
-		CdeclCall(0x4381D0, this);
+
+	NiFixedString(const NiFixedString& str) {
+		handle = str.handle;
 	};
+
+	~NiFixedString() {
+		DecRefCount(handle);
+	};
+
+	NiFixedString& NiFixedString::operator=(const char* pcString) {
+		if (handle != pcString) {
+			const char* oldHandle = handle;
+			handle = CdeclCall<const char*>(0xA5B690, pcString);
+			DecRefCount(oldHandle);
+		}
+		return *this;
+	}
+
+	NiFixedString& NiFixedString::operator=(const NiFixedString& arString) {
+		if (handle != arString.handle) {
+			const char* newHandle = arString.handle;
+			IncRefCount(newHandle);
+			DecRefCount(handle);
+			handle = newHandle;
+		}
+		return *this;
+	}
+
+	void IncRefCount(const char* handle) {
+		if (handle)
+			InterlockedIncrement((size_t*)GetRealBufferStart(handle));
+	};
+
+	void DecRefCount(const char* handle) {
+		if (handle)
+			InterlockedDecrement((size_t*)GetRealBufferStart(handle));
+	}
+
+private:
+	char* GetRealBufferStart(const char* handle) {
+		return ((char*)handle - 2 * sizeof(size_t));
+	}
 };
 
 class NiMemObject {

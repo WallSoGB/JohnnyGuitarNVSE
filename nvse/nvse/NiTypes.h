@@ -21,9 +21,25 @@ struct NiRTTI
 	NiRTTI			*parent;
 };
 
+struct NiVector3;
+
 // 24
 struct NiMatrix33
 {
+	NiMatrix33() {}
+	NiMatrix33(float m00, float m10, float m20, float m01, float m11, float m21, float m02, float m12, float m22)
+	{
+		cr[0][0] = m00;
+		cr[0][1] = m10;
+		cr[0][2] = m20;
+		cr[1][0] = m01;
+		cr[1][1] = m11;
+		cr[1][2] = m21;
+		cr[2][0] = m02;
+		cr[2][1] = m12;
+		cr[2][2] = m22;
+	}
+
 	float	cr[3][3];
 
 	void ExtractAngles(float &rotX, float &rotY, float &rotZ);
@@ -31,6 +47,22 @@ struct NiMatrix33
 	void Rotate(float rotX, float rotY, float rotZ);
 	void MultiplyMatrices(NiMatrix33 &matA, NiMatrix33 &matB);
 	void Dump(const char *title = NULL);
+
+	NiMatrix33 NiMatrix33::operator* (const NiMatrix33& mat) const;
+	void NiMatrix33::operator*= (const NiMatrix33& mat);
+	NiVector3 operator*(const NiVector3& pt) const;
+
+	void MakeXRotation(float fAngle);
+
+	void MakeYRotation(float fAngle);
+
+	void MakeZRotation(float fAngle);
+
+	void MakeRotation(float fAngle, float x, float y, float z);
+	void MakeRotation(float angle, const NiVector3& axis);
+
+	void FromEulerAnglesXYZ(float fXAngle, float fYAngle, float fZAngle);
+	bool ToEulerAnglesXYZ(float& arfXAngle, float& arfYAngle, float& arfZAngle) const;
 };
 
 struct NiQuaternion;

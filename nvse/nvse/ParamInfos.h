@@ -768,14 +768,15 @@ static ParamInfo kSplatterParams[8] = {
 
 static ParamInfo kTransformParams[] =
 {
-	{	"Block name",	kParamType_String, 0	},
-	{	"X",			kParamType_Float, 0	},
-	{	"Y",			kParamType_Float, 0	},
-	{	"Z",			kParamType_Float, 0	},
-	{	"W",			kParamType_Float, 0	},
-	{	"Is Rotation",	kNVSEParamType_Boolean, 0	},
-	{	"World Data",	kNVSEParamType_Boolean, 0	},
-	{	"Update",		kNVSEParamType_Boolean, 0	},
+	{	"Block name",			kParamType_String, 0 },
+	{	"X",					kParamType_Float, 0	},
+	{	"Y",					kParamType_Float, 0	},
+	{	"Z",					kParamType_Float, 0	},
+	{	"Scale",				kParamType_Float, 0	},
+	{	"Operation",			kParamType_Integer, 0 },
+	{	"Operation Modifier",	kParamType_Integer, 0 },
+	{	"Update",				kParamType_Integer, 1 },
+	{	"Player 1st Person",	kParamType_Integer, 1 },
 };
 static ParamInfo kParams_OneForm_OneInt_OneOptionalInt_OneOptionalForm[4] =
 {
