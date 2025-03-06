@@ -128,9 +128,11 @@ void MessageHandler(NVSEMessagingInterface::Message* msg) {
 			break;
 		}
 		case NVSEMessagingInterface::kMessage_PostLoad: {
+			DataHandler::bHasExtendedPlugins = GetModuleHandle("PluginExtensions.dll") != nullptr;
 			if (!bDisableDLLCompatibilityRoutines) {
 				HandleDLLInterop();
 			}
+			break;
 		}
 		default:
 			break;

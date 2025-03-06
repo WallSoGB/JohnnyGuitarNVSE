@@ -136,8 +136,7 @@ struct ModInfo		// referred to by game as TESFile
 	UInt8								pad29B;
 	WIN32_FIND_DATA						fileData;			// 29C
 	FileHeader							header;				// 3DC
-	UInt8								flags;				// 3E8	Bit 0 is ESM . Runtime: Bit 2 is Valid, Bit 3 is Unselected Editor: 2 is selected, 3 is active, 4 may be invalid, 6 is endian, 14 controls VCI.
-	UInt8								pad3E9[3];
+	UInt32								flags;				// 3E8	Bit 0 is ESM . Runtime: Bit 2 is Valid, Bit 3 is Unselected Editor: 2 is selected, 3 is active, 4 may be invalid, 6 is endian, 14 controls VCI.
 	tList<char*>* refModNames;		// 3EC	paired with 3F0
 	UInt32								unk3F0;				// 3F0
 	tList<MasterSize*>* refModData;		// 3F4 most likely full of 0
@@ -160,6 +159,9 @@ struct ModInfo		// referred to by game as TESFile
 
 	bool IsLoaded() const { return true; }
 
+	bool IsSmall() const { return (flags & 0x100) != 0; }
+	bool IsOverlay() const { return (flags & 0x200) != 0; }
+
 #if !EDITOR
 	/*** used by TESForm::LoadForm() among others ***/
 	MEMBER_FN_PREFIX(ModInfo);
@@ -173,12 +175,51 @@ struct ModInfo		// referred to by game as TESFile
 STATIC_ASSERT(sizeof(WIN32_FIND_DATA) == 0x140);
 STATIC_ASSERT(sizeof(ModInfo) == 0x42C);
 
-struct ModList {
-	tList<ModInfo>		modInfoList;		// 00
-	UInt32				loadedModCount;		// 08
-	ModInfo* loadedMods[0xFF];	// 0C
+struct ModArray {
+	void* vtable;
+	ModInfo** data;
+	UInt32	size;
+	UInt32	capacity;
+
+	ModInfo* GetAt(UInt32 idx) const {
+		return data[idx];
+	}
+
+	UInt32 GetSize() const {
+		return size;
+	}
 };
-STATIC_ASSERT(sizeof(ModList) == 0x408);
+
+struct ModList
+{
+	union {
+		struct {
+			ModArray	normalFiles;
+			ModArray	smallFiles;
+			ModArray	overlayFiles;
+			UInt32		padding[0xF4];
+		};
+
+		struct {
+			uint32_t	loadedModCount;
+			ModInfo*	loadedMods[0xFF];
+		};
+	};
+
+
+	ModInfo* GetMod(UInt8 modIndex) const;
+
+	ModInfo* GetSmallMod(UInt16 modIndex) const;
+
+	ModInfo* GetOverlayMod(UInt32 modIndex) const;
+
+	UInt32 GetNormalModCount() const;
+
+	UInt32 GetSmallModCount() const;
+
+	UInt32 GetOverlayModCount() const;
+};
+STATIC_ASSERT(sizeof(ModList) == 0x400);
 
 // 5B8
 class DataHandler {
@@ -253,6 +294,7 @@ public:
 	UInt32							unk1FC[3];				// 1FC	208 looks like next created refID
 	UInt32							nextCreatedRefID;		// 208	Init'd to FF000800
 	UInt32							unk20C;					// 20C	last unselected mod in modList. GECK: active ESM
+	tList<ModInfo>					modInfoList;
 	ModList							modList;				// 210
 	UInt8							unk618;					// 618
 	UInt8							unk619;					// 619
@@ -271,7 +313,9 @@ public:
 	UInt32							unk638;					// 638
 
 	static DataHandler* Get();
-	const ModInfo** GetActiveModList();		// returns array of modEntry* corresponding to loaded mods sorted by mod index
+
+	static bool bHasExtendedPlugins;
+
 	const ModInfo* LookupModByName(const char* modName);
 	UInt8 GetModIndex(const char* modName);
 	UInt8 GetActiveModCount() const;

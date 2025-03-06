@@ -1,67 +1,52 @@
 #include "GameData.h"
 
-DataHandler* DataHandler::Get() {
+bool DataHandler::bHasExtendedPlugins = false;
+
+DataHandler* DataHandler::Get()
+{
 	DataHandler** g_dataHandler = (DataHandler**)0x011C3F2C;
 	return *g_dataHandler;
 }
 
-class LoadedModFinder {
-	const char* m_stringToFind;
-
-public:
-	LoadedModFinder(const char* str) : m_stringToFind(str) {}
-
-	bool Accept(ModInfo* modInfo) {
-		return _stricmp(modInfo->name, m_stringToFind) == 0;
-	}
-};
-
-const ModInfo* DataHandler::LookupModByName(const char* modName) {
-	return modList.modInfoList.Find(LoadedModFinder(modName));
+const ModInfo* DataHandler::LookupModByName(const char* modName)
+{
+	return ThisStdCall<const ModInfo*>(0x462F40, this, modName);
 }
 
-const ModInfo** DataHandler::GetActiveModList() {
-	static const ModInfo* activeModList[0x100] = { 0 };
+UInt8 DataHandler::GetModIndex(const char* modName)
+{
+	const ModInfo* mod = LookupModByName(modName);
+	if (mod)
+		return mod->modIndex;
 
-	if (!(*activeModList)) {
-		UInt16 index = 0;
-		for (index = 0; index < DataHandler::Get()->modList.modInfoList.Count(); index++) {
-			ModInfo* entry = DataHandler::Get()->modList.modInfoList.GetNthItem(index);
-			if (entry->IsLoaded())
-				activeModList[index] = entry;
-		}
-	}
-
-	return activeModList;
-}
-
-UInt8 DataHandler::GetModIndex(const char* modName) {
-	ListNode<ModInfo>* iter = modList.modInfoList.Head();
-	ModInfo* modInfo;
-	do {
-		modInfo = iter->data;
-		if (modInfo && StrEqualCI(modInfo->name, modName))
-			return modInfo->modIndex;
-	} while (iter = iter->next);
 	return 0xFF;
 }
 
-const char* DataHandler::GetNthModName(UInt32 modIndex) {
-	const ModInfo** activeModList = GetActiveModList();
-	if (modIndex < GetActiveModCount() && activeModList[modIndex])
-		return activeModList[modIndex]->name;
-	else
+const char* DataHandler::GetNthModName(UInt32 modIndex)
+{
+	if (bHasExtendedPlugins && modIndex == 0xFE)
+		return "Small Mod";
+
+	if (modList.GetNormalModCount() <= modIndex || modIndex == 0xFF)
 		return "";
+
+	ModInfo* modInfo = modList.GetMod(modIndex);
+	if (modInfo)
+		return modInfo->name;
+
+	return "";
 }
 
-struct IsModLoaded {
+struct IsModLoaded
+{
 	bool Accept(ModInfo* pModInfo) const {
 		return pModInfo->IsLoaded();
 	}
 };
 
-UInt8 DataHandler::GetActiveModCount() const {
-	return modList.modInfoList.Count();
+UInt8 DataHandler::GetActiveModCount() const
+{
+	return modList.GetNormalModCount();
 }
 
 ModInfo::ModInfo() {
@@ -71,3 +56,54 @@ ModInfo::ModInfo() {
 ModInfo::~ModInfo() {
 	//
 };
+
+ModInfo* ModList::GetMod(UInt8 modIndex) const {
+	if (modIndex >= GetNormalModCount())
+		return nullptr;
+
+	if (DataHandler::bHasExtendedPlugins)
+		return normalFiles.GetAt(modIndex);
+
+	return loadedMods[modIndex];
+}
+
+ModInfo* ModList::GetSmallMod(UInt16 modIndex) const {
+	if (modIndex >= GetSmallModCount())
+		return nullptr;
+
+	if (DataHandler::bHasExtendedPlugins)
+		return smallFiles.GetAt(modIndex);
+
+	return nullptr;
+}
+
+ModInfo* ModList::GetOverlayMod(UInt32 modIndex) const {
+	if (modIndex >= GetOverlayModCount())
+		return nullptr;
+
+	if (DataHandler::bHasExtendedPlugins)
+		return overlayFiles.GetAt(modIndex);
+
+	return nullptr;
+}
+
+UInt32 ModList::GetNormalModCount() const {
+	if (DataHandler::bHasExtendedPlugins)
+		return normalFiles.GetSize();
+
+	return loadedModCount;
+}
+
+UInt32 ModList::GetSmallModCount() const {
+	if (DataHandler::bHasExtendedPlugins)
+		return smallFiles.GetSize();
+
+	return 0;
+}
+
+UInt32 ModList::GetOverlayModCount() const {
+	if (DataHandler::bHasExtendedPlugins)
+		return overlayFiles.GetSize();
+
+	return 0;
+}

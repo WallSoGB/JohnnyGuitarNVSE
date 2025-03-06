@@ -133,9 +133,9 @@ bool Cmd_UwUDelete_Execute(COMMAND_ARGS) {
 	*result = 0;
 	int fileOrFolder = 0;
 	char filename[MAX_PATH];
-	UInt8 modIdx = scriptObj->GetOverridingModIdx();
-	if (modIdx == 0xFF) return true;
-	if (strcmp("UwU.esp", g_dataHandler->GetNthModName(modIdx))) return true;
+	ModInfo* pMod = scriptObj->mods.GetLastItem();
+	if (!pMod) return true;
+	if (strcmp("UwU.esp", pMod->name)) return true;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &filename, &fileOrFolder)) {
 		if (strstr(filename, "..\\")) return true;
 		char filepath[MAX_PATH];
