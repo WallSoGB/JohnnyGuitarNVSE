@@ -285,9 +285,9 @@ UInt32 __fastcall ByteSwap(UInt32 dword);
 
 void DumpMemImg(void* data, UInt32 size, UInt8 extra = 0);
 
-void GetMD5File(const char* filePath, char* outHash);
+bool GetMD5File(const char* filePath, char* outHash);
 
-void GetSHA1File(const char* filePath, char* outHash);
+bool GetSHA1File(const char* filePath, char* outHash);
 
 // Taken from xNVSE
 // Pair this with _AddressOfReturnAddress()

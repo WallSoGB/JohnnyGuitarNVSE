@@ -4,6 +4,7 @@
 #include "internal/md5/md5.h"
 #include "internal/sha1/sha1.h"
 #include <time.h>
+#include <FileFinder.h>
 void LightCS::Enter() {
 	UInt32 threadID = GetCurrentThreadId();
 	if (owningThread == threadID) {
@@ -1275,50 +1276,52 @@ __declspec(naked) UInt32 __fastcall ByteSwap(UInt32 dword) {
 	}
 }
 
-void GetMD5File(const char* filePath, char* outHash) {
-	FileStream sourceFile;
-	if (!sourceFile.Open(filePath)) return;
+bool GetMD5File(const char* filePath, char* outHash) {
+	BSFile* pFile = FileFinder::GetSingleton()->GetFile(filePath, FileFinder::READ_ONLY, 0x4000, FileFinder::ARCHIVE_TYPE_ALL);
+	if (!pFile)
+		return false;
 
 	MD5 md5;
-
-	HANDLE handle = sourceFile.GetHandle();
-
-	UInt8 buffer[0x400], digest[0x10];
-	UInt32 offset = 0, length;
-
-	while (!sourceFile.HitEOF()) {
-		ReadFile(handle, buffer, 0x400, &length, NULL);
-		offset += length;
-		sourceFile.SetOffset(offset);
-		md5.MD5Update(buffer, length);
+	uint8_t buffer[0x400], digest[0x10];
+	const uint32_t uiFileSize = pFile->GetFileSize();
+	uint32_t uiBytesRead = 0;
+	while (uiBytesRead < uiFileSize) {
+		uint32_t uiBytesReadNow = pFile->DoRead(buffer, std::min(sizeof(buffer), uiFileSize - uiBytesRead));
+		uiBytesRead += uiBytesReadNow;
+		md5.MD5Update(buffer, uiBytesReadNow);
 	}
+
 	md5.MD5Final(digest);
 
 	for (UInt8 idx = 0; idx < 0x10; idx++, outHash += 2)
 		sprintf_s(outHash, 3, "%02X", digest[idx]);
+
+	pFile->Destructor(true);
+	return true;
 }
 
-void GetSHA1File(const char* filePath, char* outHash) {
-	FileStream sourceFile;
-	if (!sourceFile.Open(filePath)) return;
+bool GetSHA1File(const char* filePath, char* outHash) {
+	BSFile* pFile = FileFinder::GetSingleton()->GetFile(filePath, FileFinder::READ_ONLY, 0x4000, FileFinder::ARCHIVE_TYPE_ALL);
+	if (!pFile)
+		return false;
 
 	SHA1 sha;
-
-	HANDLE handle = sourceFile.GetHandle();
-
 	char buffer[0x400];
-	UInt32 offset = 0, length;
-
-	while (!sourceFile.HitEOF()) {
-		ReadFile(handle, buffer, 0x400, &length, NULL);
-		offset += length;
-		sourceFile.SetOffset(offset);
-		sha.addBytes(buffer, length);
+	const uint32_t uiFileSize = pFile->GetFileSize();
+	uint32_t uiBytesRead = 0;
+	while (uiBytesRead < uiFileSize) {
+		uint32_t uiBytesReadNow = pFile->DoRead(buffer, std::min(sizeof(buffer), uiFileSize - uiBytesRead));
+		uiBytesRead += uiBytesReadNow;
+		sha.addBytes(buffer, uiBytesReadNow);
 	}
+
 	unsigned char* digest = sha.getDigest();
 
 	for (UInt8 idx = 0; idx < 0x14; idx++, outHash += 2)
 		sprintf_s(outHash, 3, "%02X", digest[idx]);
+
+	pFile->Destructor(true);
+	return true;
 }
 
 // Taken from xNVSE
