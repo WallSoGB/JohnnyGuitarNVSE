@@ -40,7 +40,7 @@ class IFilter
 {
 public:
 	//Framework passes the objects to add to filter here
-	FilterType* genFilters = 0;
+	FilterType* genFilters = nullptr;
 	//Used to know how many filterSet in total (aka the size of the FilterType array) the filter uses
 	uint32_t numFilters = 0;
 	//Default destructor
@@ -49,19 +49,11 @@ public:
 	//This function is called by the framework so you can add the objects inside a struct more suitable for search, such as an unordered set
 	virtual void SetUpFiltering() = 0;
 
-	//Checks if an object is in the filter, recommended to use a fast lookup data structure
-	virtual bool IsInFilter(uint32_t filterNum, FilterType toSearch) = 0;
-	//Inserts the desired element to the Nth filter.
-	virtual void InsertToFilter(uint32_t filterNum, FilterType toInsert) = 0;
-	//Deletes an object from the Nth filter
-	virtual void DeleteFromFilter(uint32_t filterNum, FilterType toDelete) = 0;
-	//Returns if the filter is empty
-	virtual bool IsFilterEmpty(uint32_t filterNum) = 0;
 	//Used by the framework to check if the Nth filter equals the passed value. Useful to avoid adding the same event repeatedly
-	virtual bool IsFilterEqual(FilterType Filter, uint32_t filterNum) = 0;
+	bool IsFilterEqual(FilterType Filter, uint32_t filterNum);
 	//Function used by the filter to check if the object passed is an accepted parameter
 	virtual bool IsAcceptedParameter(FilterType toCheck) = 0;
-	virtual uint32_t GetNumFilters() { return numFilters; }
+	uint32_t GetNumFilters() const { return numFilters; }
 };
 
 
@@ -76,33 +68,36 @@ protected:
 
 public:
 	FilterBase(void** filters, uint32_t nuFilters);
-
+	FilterBase(const FilterBase&) = delete;
+	FilterBase(FilterBase&& other) noexcept {
+		this->filterSet = other.filterSet;
+		this->genFilters = other.genFilters;
+		this->numFilters = other.numFilters;
+		other.filterSet = nullptr;
+		other.genFilters = nullptr;
+		other.numFilters = 0;
+	}
 	virtual ~FilterBase();
 
-	bool IsInFilter(uint32_t filterNum, FilterType toSearch) override;
+	bool IsInFilter(uint32_t filterNum, FilterType toSearch);
 
-	bool IsFilterEmpty(uint32_t num) override;
+	bool IsFilterEmpty(uint32_t num);
 
-	void InsertToFilter(uint32_t num, FilterType toInsert) override;
+	void InsertToFilter(uint32_t num, FilterType toInsert);
 
-	void DeleteFromFilter(uint32_t num, FilterType toDelete) override;
+	void DeleteFromFilter(uint32_t num, FilterType toDelete);
 
-	bool IsFilterEqual(FilterType filter, uint32_t num) override;
-
-};
-
-
-class FilterNull : public FilterBase
-{
-public:
-	FilterNull(void** filters, uint32_t nuFilters) : FilterBase(filters, nuFilters){}
-
-	virtual bool IsInFilter(uint32_t filterNum, FilterType toSearch) override { return true; }
-	virtual void InsertToFilter(uint32_t filterNum, FilterType toInsert) override {}
-	virtual void DeleteFromFilter(uint32_t filterNum, FilterType toDelete) override {}
-	virtual bool IsFilterEqual(FilterType Filter, uint32_t nuFilter) override { return true; }
-	virtual bool IsAcceptedParameter(FilterType parameter) override { return true; }
-	virtual void SetUpFiltering() override {}
+	FilterBase&& operator=(FilterBase&& other) noexcept {
+		if (this != &other) {
+			this->filterSet = other.filterSet;
+			this->genFilters = other.genFilters;
+			this->numFilters = other.numFilters;
+			other.filterSet = nullptr;
+			other.genFilters = nullptr;
+			other.numFilters = 0;
+		}
+		return std::move(*this);
+	}
 };
 
 class FilterForm : public FilterBase
@@ -110,9 +105,9 @@ class FilterForm : public FilterBase
 public:
 	FilterForm(void** filters, uint32_t nuFilters) : FilterBase(filters, nuFilters){}
 
-	bool IsAcceptedParameter(FilterType parameter) override;
+	bool IsAcceptedParameter(FilterType parameter) final;
 
-	void SetUpFiltering() override;
+	void SetUpFiltering() final;
 
 	bool IsBaseInFilter(uint32_t filterNum, TESForm* form);
 
@@ -124,14 +119,12 @@ class FilterInt : public FilterBase
 public:
 	FilterInt(void** filters, uint32_t nuFilters) : FilterBase(filters, nuFilters){}
 
-	bool IsFilterEqual(FilterType Filter, uint32_t nuFilter) override;
-
-	bool IsAcceptedParameter(FilterType parameter) override
+	bool IsAcceptedParameter(FilterType parameter) final
 	{
 		return true;
 	}
 
-	void SetUpFiltering() override;
+	void SetUpFiltering() final;
 
 	struct Data
 	{
@@ -148,12 +141,12 @@ class FilterFormInt : public FilterBase
 public:
 	FilterFormInt(void** filters, uint32_t nuFilters) : FilterBase(filters, nuFilters) {}
 
-	bool IsAcceptedParameter(FilterType parameter) override
+	bool IsAcceptedParameter(FilterType parameter) final
 	{
 		return parameter.form->GetFormID() != 0x3B; // xMarker
 	}
 
-	void SetUpFiltering() override;
+	void SetUpFiltering() final;
 
 	struct Data
 	{
@@ -173,7 +166,31 @@ public:
 	IFilter* eventFilter = nullptr;
 	LambdaVariableContext capturedLambdaVars;
 
-	EventBase() : capturedLambdaVars(nullptr){}
+	EventBase() : capturedLambdaVars(nullptr) {}
+	EventBase(const EventBase&) = delete;
+	EventBase(EventBase&& other) noexcept {
+		this->Flags = other.Flags;
+		this->UserFlags = other.UserFlags;
+		this->script = other.script;
+		this->eventFilter = other.eventFilter;
+		this->capturedLambdaVars = std::move(other.capturedLambdaVars);
+		other.script = nullptr;
+		other.eventFilter = nullptr;
+	}
+
+	EventBase& operator=(const EventBase&) = delete;
+	EventBase&& operator=(EventBase&& other) noexcept {
+		if (this != &other) {
+			this->Flags = other.Flags;
+			this->UserFlags = other.UserFlags;
+			this->script = other.script;
+			this->eventFilter = other.eventFilter;
+			this->capturedLambdaVars = std::move(other.capturedLambdaVars);
+			other.script = nullptr;
+			other.eventFilter = nullptr;
+		}
+		return std::move(*this);
+	}
 
 	enum GlobalEventFlags
 	{
@@ -205,18 +222,20 @@ public:
 	std::vector<EventBase> callbacks;
 
 	EventInformation(const char* EventName, uint8_t& numMaxArgs, uint8_t& numMaxFilters, void* (__fastcall* CreatorFunction)(void**, uint32_t));
+	EventInformation(const EventInformation&) = delete;
+	EventInformation(EventInformation&& other) = delete;
 
 	virtual ~EventInformation();
 
 	void FlushEventCallbacks();
 
-	void virtual RegisterEvent(Script* script, void** filters, uint32_t userFlags = 0);
+	void RegisterEvent(Script* script, void** filters, uint32_t userFlags = 0);
 
-	void virtual RemoveEvent(Script* script, void** filters);
+	void RemoveEvent(Script* script, void** filters);
 
-	void virtual AddQueuedEvents();
+	void AddQueuedEvents();
 
-	void virtual DeleteEvents();
+	void DeleteEvents();
 };
 
 typedef EventInformation* EventInfo;

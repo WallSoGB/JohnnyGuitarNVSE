@@ -64,8 +64,8 @@ void FilterBase::DeleteFromFilter(uint32_t num, FilterType toDelete) {
 	if (filters) filters->erase(toDelete.refID);
 }
 
-bool FilterBase::IsFilterEqual(FilterType filter, uint32_t num) {
-	return (filter.ptr == genFilters[num].ptr);
+bool IFilter::IsFilterEqual(FilterType Filter, uint32_t filterNum) {
+	return Filter.ptr == genFilters[filterNum].ptr;
 }
 
 bool FilterForm::IsAcceptedParameter(FilterType parameter) {
@@ -104,10 +104,6 @@ void FilterForm::insertFormList(BGSListForm* formlist, uint32_t filter) {
 	do {
 		InsertToFilter(filter, iterator->data->GetFormID());
 	} while (iterator = iterator->next);
-}
-
-bool FilterInt::IsFilterEqual(FilterType Filter, uint32_t nuFilter) {
-	return Filter.intVal == genFilters[nuFilter].intVal;
 }
 
 void FilterInt::SetUpFiltering() {
