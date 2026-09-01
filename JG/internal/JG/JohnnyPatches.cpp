@@ -30,6 +30,7 @@
 #include "WorldToScreen.hpp"
 #include "NewNiObjects.hpp"
 #include "FormSkeletons.hpp"
+#include "NamedSpellLights.hpp"
 
 #include "Bethesda/GameSettingCollection.hpp"
 
@@ -271,6 +272,8 @@ namespace JohnnyPatches {
 		DialogueResponseOverride::Install();
 
 		NewNiObjects::Install();
+
+		NamedSpellLights::Install();
 	}
 
 	void PostLoadInit() {

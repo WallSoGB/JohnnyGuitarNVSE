@@ -520,6 +520,9 @@
     <ClCompile Include="internal\Game\Bethesda\BSXFlags.cpp">
       <Filter>internal\Game\Bethesda</Filter>
     </ClCompile>
+    <ClCompile Include="internal\JG\NamedSpellLights.cpp">
+      <Filter>internal\JG\Features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -1388,6 +1391,12 @@
       <Filter>internal\Game\Gamebryo</Filter>
     </ClInclude>
     <ClInclude Include="internal\Game\Bethesda\BSXFlags.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\JG\NamedSpellLights.hpp">
+      <Filter>internal\JG\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\MagicSystem.hpp">
       <Filter>internal\Game\Bethesda</Filter>
     </ClInclude>
   </ItemGroup>
