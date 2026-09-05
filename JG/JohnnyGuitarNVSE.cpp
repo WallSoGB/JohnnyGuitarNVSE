@@ -67,17 +67,17 @@ void OnNVSELoadInit(const NVSEInterface* apNVSE) {
 #endif
 
 	JohnnyCommands::Init(apNVSE);
+
+	if (JohnnyPatches::bFixJIP) {
+		JIPFixes::InitData();
+		JIPFixes::InitEarlyHooks();
+	}
 }
 
 // Runs on program's WinMain
 // For the game, it's on NVSEPlugin_Load itself
 // For GECK, NVSEPlugin_Load works like game's NVSEPlugin_Preload, so a hook is needed to init at a similar point to the game
 void OnMainInit() {
-	if (JohnnyPatches::bFixJIP) {
-		JIPFixes::InitData();
-		JIPFixes::InitEarlyHooks();
-	}
-
 	FixedStringsRework::Init();
 	JohnnyExtraData::Initialize(g_dataInterface);
 	JohnnyFixes::Init();
