@@ -242,7 +242,7 @@ inline bool Cmd_Default_Eval(COMMAND_ARGS_EVAL) { return true; }
 #define HANDLER_EVAL(x)	x
 #else
 #define HANDLER(x) reinterpret_cast<Cmd_Execute>(0x5CA000)
-#define HANDLER_EVAL(x)	nullptr
+#define HANDLER_EVAL(x)	reinterpret_cast<Cmd_Eval>(0x5BB810)
 #endif
 
 const uint32_t kNVSEOpcodeStart = 0x1400;
