@@ -603,7 +603,7 @@ namespace JohnnyEvents {
 			float fOldVal = *reinterpret_cast<float*>(pEBP + 0x10);
 			float fNewVal = *reinterpret_cast<float*>(pEBP + 0x14);
 			ActorValueInfo* pInfo = CdeclCall<ActorValueInfo*>(kOnAVChangeDetour, aeActorValue);
-			if (pInfo && pInfo->onChangeCallback)
+			if (pInfo)
 				Events::OnAVChange(pActor, aeActorValue, fOldVal, fNewVal, pInfo->onChangeCallback);
 			return pInfo;
 		}
