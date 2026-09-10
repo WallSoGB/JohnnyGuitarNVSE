@@ -303,6 +303,7 @@ struct _ProcessType {
 	};
 };
 using PROCESS_TYPE = _ProcessType::Type;
+using PROCESS_LEVEL = _ProcessType::Type;
 
 struct _Confidence {
 	enum Type : uint8_t {
@@ -332,6 +333,42 @@ struct _SitSleepState {
 	};
 };
 using SIT_SLEEP_STATE = _SitSleepState::State;
+
+struct _LifeState {
+	enum State {
+		ALIVE			= 0,
+		DYING			= 1,
+		DEAD			= 2,
+		UNCONSCIOUS		= 3,
+		REANIMATE		= 4,
+		RESTRAINED		= 5,
+		ESSENTIAL_DOWN	= 6,
+	};
+};
+using ACTOR_LIFE_STATE = _LifeState::State;
+
+struct _CriticalStage {
+	enum Stage {
+		NONE				= 0,
+		GOO_START			= 1,
+		GOO_END				= 2,
+		DISINTEGRATE_START	= 3,
+		DISINTEGRATE_END	= 4,
+		COUNT				= 5,
+	};
+};
+using ACTOR_CRITICAL_STAGE = _CriticalStage::Stage;
+
+struct _FightReaction {
+	enum Type : uint32_t {
+		NEUTRAL	= 0,
+		ENEMY	= 1,
+		ALLY	= 2,
+		FRIEND	= 3,
+		COUNT,
+	};
+};
+using FIGHT_REACTION = _FightReaction::Type;
 
 #pragma endregion
 
@@ -1608,6 +1645,7 @@ struct _BodyPartType {
 	};
 };
 using BODY_PART_TYPE = _BodyPartType::Type;
+using LIMB_TYPE = _BodyPartType::Type;
 
 struct _DetectionLevel {
 	enum Level : uint32_t {
@@ -1753,3 +1791,48 @@ struct _BSIntersectResult {
 	};
 };
 using BS_INTERSECT_RESULT = _BSIntersectResult::Result;
+
+struct _RegionDataType {
+	enum Type {
+		NONE		= 0,
+		GENERAL		= 1,
+		OBJECTS		= 2,
+		WEATHER		= 3,
+		MAP			= 4,
+		LANDSCAPE	= 5,
+		GRASS		= 6,
+		SOUND		= 7,
+		IMPOSTER	= 8,
+		COUNT		= 9,
+	};
+};
+using REGION_DATA_ID = _RegionDataType::Type;
+
+#pragma region Conditions
+
+struct _ConditionRunOn {
+	enum RunOn : uint32_t {
+		SUBJECT,
+		TARGET,
+		REFERENCE,
+		COMBAT_TARGET,
+		LINKED_REFERENCE,
+		COUNT,
+	};
+};
+using CONDITION_RUN_ON = _ConditionRunOn::RunOn;
+
+struct _ConditionComparison {
+	enum Comparison : uint32_t {
+		EQUAL,
+		NOT_EQUAL,
+		GREATER_THAN,
+		GREATER_THAN_OR_EQUAL,
+		LESS_THAN,
+		LESS_THAN_OR_EQUAL,
+		COUNT,
+	};
+};
+using CONDITION_COMPARISON = _ConditionComparison::Comparison;
+
+#pragma endregion

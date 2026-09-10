@@ -183,6 +183,8 @@ public:
 	bool IsInInterior() { return ThisCall<bool>(0x575D10, this); }
 	static TESObjectREFR* __stdcall Create(bool bTemp = false);
 
+	TESForm* GetOwner() const { return ThisCall<TESForm*>(0x567790, this); }
+
 	float GetHealth() { return ThisCall<float>(0x568AD0, this); }
 
 	void ReplaceModel() { ThisCall(0x5710C0, this); }

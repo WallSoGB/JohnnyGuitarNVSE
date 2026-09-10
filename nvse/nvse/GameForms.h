@@ -5,15 +5,64 @@
 #include "GameBSExtraData.h"
 #include "internal/netimmerse.h"
 #include "internal/havok.h"
-#include "Bethesda/TESModelTextureSwap.hpp"
-#include "Bethesda/TESBoundAnimObject.hpp"
-#include "Bethesda/BGSListForm.hpp"
+
+// Form components
+#include "Bethesda/BGSAmmoForm.hpp"
+#include "Bethesda/BGSBipedModelList.hpp"
+#include "Bethesda/BGSBodyPart.hpp"
+#include "Bethesda/BGSClipRoundsForm.hpp"
+#include "Bethesda/BGSDestructibleObjectForm.hpp"
+#include "Bethesda/BGSEquipType.hpp"
+#include "Bethesda/BGSIdleCollection.hpp"
+#include "Bethesda/BGSPickupPutdownSounds.hpp"
+#include "Bethesda/BGSPreloadable.hpp"
+#include "Bethesda/BGSRepairItemList.hpp"
+#include "Bethesda/BGSTextureModel.hpp"
+#include "Bethesda/BGSTouchSpellForm.hpp"
+#include "Bethesda/TESActorBaseData.hpp"
+#include "Bethesda/TESAIForm.hpp"
+#include "Bethesda/TESAnimation.hpp"
+#include "Bethesda/TESAttackDamageForm.hpp"
+#include "Bethesda/TESAttributes.hpp"
+#include "Bethesda/TESBipedModelForm.hpp"
+#include "Bethesda/TESContainer.hpp"
+#include "Bethesda/TESDescription.hpp"
+#include "Bethesda/TESEnchantableForm.hpp"
 #include "Bethesda/TESFullName.hpp"
+#include "Bethesda/TESHealthForm.hpp"
+#include "Bethesda/TESIcon.hpp"
+#include "Bethesda/TESImageSpaceModifiableForm.hpp"
 #include "Bethesda/TESLeveledList.hpp"
+#include "Bethesda/TESModelAnim.hpp"
+#include "Bethesda/TESModelList.hpp"
+#include "Bethesda/TESModelRDT.hpp"
+#include "Bethesda/TESModelTextureSwap.hpp"
+#include "Bethesda/TESRaceForm.hpp"
+#include "Bethesda/TESReactionForm.hpp"
+#include "Bethesda/TESScriptableForm.hpp"
+#include "Bethesda/TESSoundFile.hpp"
+#include "Bethesda/TESSpellList.hpp"
+#include "Bethesda/TESTexture1024.hpp"
+#include "Bethesda/TESValueForm.hpp"
+#include "Bethesda/TESWeightForm.hpp"
+
+// Other form components, that are not BaseFormComponent
+#include "Bethesda/ActorValueOwner.hpp"
+#include "Bethesda/BGSOpenCloseForm.hpp"
+#include "Bethesda/CachedValuesOwner.hpp"
+#include "Bethesda/MagicItem.hpp"
+#include "Bethesda/TESCondition.hpp"
+#include "Bethesda/TESRegionData.hpp"
+#include "Bethesda/TESRegionList.hpp"
+
+// Forms themselves
+#include "Bethesda/ActorValueInfo.hpp"
+#include "Bethesda/BGSListForm.hpp"
+#include "Bethesda/BGSMenuIcon.hpp"
+#include "Bethesda/EffectSetting.hpp"
+#include "Bethesda/TESBoundAnimObject.hpp"
 #include "Bethesda/TESLevItem.hpp"
 #include "Bethesda/TESObjectLAND.hpp"
-#include "Bethesda/TESIcon.hpp"
-#include "Bethesda/TESTexture1024.hpp"
 #include "Obsidian/TESReputation.hpp"
 
 class PathingLocation;
@@ -312,262 +361,6 @@ struct PermanentClonedForm {
 	uint32_t cloneRefID;
 };
 
-struct Condition {
-	uint8_t			type;				// 00
-	uint8_t			pad01[3];			// 01
-	union {
-		float		value;
-		uint32_t		global;
-	}				comparisonValue;	// 04
-	uint32_t			opcode;				// 08
-	union {
-		float		value;
-		uint32_t		number;
-		TESForm* form;
-	}				parameter1;			// 0C
-	union {
-		float		value;
-		uint32_t		number;
-		TESForm* form;
-	}				parameter2;			// 10
-	uint32_t			runOnType;			// 14	Subject, Target, Reference, CombatTarget, LinkedReference
-	TESObjectREFR* reference;			// 18
-
-	bool Evaluate(TESObjectREFR* runOnRef, TESForm* arg2, bool* result) { return ThisCall<bool>(0x681600, this, runOnRef, arg2, result); }
-};
-
-struct ConditionList : public BSSimpleList<Condition*> {
-#ifdef EDITOR
-	uint8_t unk08;
-#endif
-	bool Evaluate(TESObjectREFR* runOnRef, TESForm* arg2, bool* result, bool arg4) { return ThisCall<bool>(0x680C60, this, runOnRef, arg2, result, arg4); }
-};
-
-// C
-class TESScriptableForm : public BaseFormComponent {
-public:
-	TESScriptableForm();
-	~TESScriptableForm();
-
-	Script* script;	// 004
-	bool	resolved;	// 008	called during LoadForm, so scripts do not wait for TESForm_InitItem to be resolved
-	uint8_t	pad[3];		// 009
-};
-
-// 008
-class TESValueForm : public BaseFormComponent {
-public:
-	enum {
-		kModified_GoldValue = 0x00000008,
-		// uint32_t	value
-	};
-
-	TESValueForm();
-	~TESValueForm();
-
-	virtual uint32_t	GetSaveSize(uint32_t changedFlags);
-	virtual void	Save(uint32_t changedFlags);
-	virtual void	Load(uint32_t changedFlags);
-
-	//	DEFINE_MEMBER_FN_LONG(TESValueForm, SetValue, void, _TESValueForm_SetValue, uint32_t newVal);
-
-	uint32_t	value;
-	// 008
-};
-
-// 10
-class TESEnchantableForm : public BaseFormComponent {
-public:
-	TESEnchantableForm();
-	~TESEnchantableForm();
-
-	virtual uint32_t	Unk_04(void);	// returns unk2
-
-	EnchantmentItem* enchantItem;	// 04
-	uint16_t	enchantment;			// 08
-	uint16_t	unk1;					// 0A
-	uint32_t	unk2;					// 0C
-	// 010
-
-	static EnchantmentItem* GetFormEnchanting(TESForm* apForm) {
-		return CdeclCall<EnchantmentItem*>(0x4BE330, apForm);
-	}
-};
-
-class TESImageSpaceModifier;
-
-// 08
-class TESImageSpaceModifiableForm : public BaseFormComponent {
-public:
-	TESImageSpaceModifiableForm();
-	~TESImageSpaceModifiableForm();
-
-	TESImageSpaceModifier* pModifier;
-};
-
-// 008
-class TESWeightForm : public BaseFormComponent {
-public:
-	TESWeightForm();
-	~TESWeightForm();
-
-	float	weight;		// 004
-	// 008
-};
-
-// 008
-class TESHealthForm : public BaseFormComponent {
-public:
-	TESHealthForm();
-	~TESHealthForm();
-
-	virtual uint32_t	GetHealth(void);	// 0004
-
-	uint32_t	health;		// 004
-};
-
-// 008
-class TESAttackDamageForm : public BaseFormComponent {
-public:
-	TESAttackDamageForm();
-	~TESAttackDamageForm();
-
-	virtual uint16_t	GetDamage(void);
-
-	uint16_t	damage;	// 04
-	uint16_t	unk0;	// 06 - bitmask? perhaps 2 UInt8s?
-	// 008
-};
-
-// 24
-class EffectItem {
-public:
-	EffectItem();
-	~EffectItem();
-
-	enum {
-		kRange_Self = 0,
-		kRange_Touch,
-		kRange_Target,
-	};
-
-	struct ScriptEffectInfo {
-		uint32_t		scriptRefID;
-		uint32_t		school;
-		BSString	effectName;
-		uint32_t		visualEffectCode;
-		uint32_t		isHostile;
-
-		void SetName(const char* name);
-		void SetSchool(uint32_t school);
-		void SetVisualEffectCode(uint32_t code);
-		void SetIsHostile(bool bIsHostile);
-		bool IsHostile() const;
-		void SetScriptRefID(uint32_t refID);
-
-		ScriptEffectInfo* Clone() const;
-		void CopyFrom(const ScriptEffectInfo* from);
-		static ScriptEffectInfo* Create();
-	};
-
-	// mising flags
-	uint32_t				magnitude;			// 00	used as a float
-	uint32_t				area;				// 04
-	uint32_t				duration;			// 08
-	uint32_t				range;				// 0C
-	uint32_t				actorValueOrOther;	// 10
-	EffectSetting*		setting;			// 14
-	float				cost;				// 18 on autocalc items this seems to be the cost
-	ConditionList		conditions;			// 1C
-
-	//bool HasActorValue() const;
-	//uint32_t GetActorValue() const;
-	//bool IsValidActorValue(uint32_t actorValue) const;
-	//void SetActorValue(uint32_t actorValue);
-
-	//bool IsScriptedEffect() const;
-	//uint32_t ScriptEffectRefId() const;
-	//uint32_t ScriptEffectSchool() const;
-	//uint32_t ScriptEffectVisualEffectCode() const;
-	//bool IsScriptEffectHostile() const;
-
-	//EffectItem* Clone() const;
-	//void CopyFrom(const EffectItem* from);
-	//static EffectItem* Create();
-	//static EffectItem* ProxyEffectItemFor(uint32_t effectCode);
-	//
-	//bool operator<(EffectItem*rhs) const;
-	//// return the magicka cost of this effect item
-	//// adjust for skill level if actorCasting is used
-	//float MagickaCost(TESForm* actorCasting = NULL) const;
-
-	//void SetMagnitude(uint32_t magnitude);
-	//void ModMagnitude(float modBy);
-	//void SetArea(uint32_t area);
-	//void ModArea(float modBy);
-	//void SetDuration(uint32_t duration);
-	//void ModDuration(float modBy);
-	//void SetRange(uint32_t range);
-	//bool IsHostile() const;
-};
-
-// 10
-class EffectItemList : public BSSimpleList<EffectItem*> {
-public:
-	EffectItemList();
-	~EffectItemList();
-
-	virtual bool		IsMedicine() const;
-	virtual bool		IsFood() const;
-	virtual float		GetCost(Actor* apActor) const;
-	virtual uint32_t	GetMaxEffectCount() const;
-	virtual uint32_t	GetLevel() const;
-
-	uint32_t uiHostileCount;
-
-	bool RemoveNthEffect(uint32_t index);
-
-	void GetEffectsString(char* apBuffer, uint32_t auiBufferSize) const {
-		ThisCall(0x406620, this, apBuffer, auiBufferSize);
-	}
-};
-
-static_assert(sizeof(EffectItemList) == 0x10);
-
-// 1C
-class MagicItem : public TESFullName {
-public:
-	MagicItem();
-	~MagicItem();
-
-	virtual void	Unk_04(void); // pure virtual
-	virtual void	Unk_05(void); // pure virtual
-	virtual uint32_t	GetType();
-	virtual bool	Unk_07(void);
-	virtual bool	Unk_08(void);
-	virtual void	Unk_09(void); // pure virtual
-	virtual void	Unk_0A(void); // pure virtual
-	virtual void	Unk_0B(void); // pure virtual
-	virtual void	Unk_0C(void); // pure virtual
-	virtual void	Unk_0D(void); // pure virtual
-	virtual void	Unk_0E(void);
-	virtual void	Unk_0F(void); // pure virtual
-
-	EffectItemList	list;	// 00C
-//	uint32_t	unk018;			// 018
-	// perhaps types are no longer correct!
-	enum EType {
-		kType_None = 0,
-		kType_Spell = 1,
-		kType_Enchantment = 2,
-		kType_Alchemy = 3,
-		kType_Ingredient = 4,
-	};
-	EType Type() const;
-};
-
-static_assert(sizeof(MagicItem) == 0x1C);
-
 // 034
 class MagicItemForm : public TESForm {
 public:
@@ -584,251 +377,8 @@ public:
 static_assert(sizeof(MagicItemForm) == 0x34);
 #endif
 
-// 18
-class BGSTextureModel : public TESModel {
-public:
-	BGSTextureModel();
-	~BGSTextureModel();
-};
-
 // 020
 class BGSTextureSet;
-
-// 008
-class BGSClipRoundsForm : public BaseFormComponent {
-public:
-	BGSClipRoundsForm();
-	~BGSClipRoundsForm();
-
-	uint8_t	clipRounds;
-	uint8_t	padding[3];
-	// 008
-};
-
-// 18
-struct DestructionStage {
-	enum {
-		kFlags_CapDamage = 1,
-		kFlags_DisableObject = 2,
-		kFlags_DestroyObject = 4,
-	};
-
-	uint8_t					dmgStage;		// 00
-	uint8_t					healthPrc;		// 01
-	uint16_t					flags;			// 02
-	uint32_t					selfDmgSec;		// 04
-	BGSExplosion*			explosion;		// 08
-	BGSDebris*				debris;		// 0C
-	uint32_t					debrisCount;	// 10
-	TESModelTextureSwap*	replacement;	// 14
-};
-
-// 14
-struct DestructibleData {
-	uint32_t				health;		// 00
-	uint8_t				stageCount;	// 04
-	bool				targetable;	// 05
-	uint8_t				unk06[2];	// 06
-	DestructionStage**	stages;	// 08
-	uint32_t				unk0C;		// 0C
-	uint32_t				unk10;		// 10
-};
-
-// 08
-class BGSDestructibleObjectForm : public BaseFormComponent {
-public:
-	BGSDestructibleObjectForm();
-	~BGSDestructibleObjectForm();
-
-	DestructibleData* data;			// 04
-};
-
-static_assert(sizeof(BGSDestructibleObjectForm) == 0x8);
-
-// 00C
-class BGSPickupPutdownSounds : public BaseFormComponent {
-public:
-	BGSPickupPutdownSounds();
-	~BGSPickupPutdownSounds();
-
-	TESSound* pickupSound;		// 004
-	TESSound* putdownSound;		// 008
-};
-
-// 008
-class BGSAmmoForm : public BaseFormComponent {
-public:
-	BGSAmmoForm();
-	~BGSAmmoForm();
-
-	TESForm* ammo; // 04	either TESAmmo or BGSListForm
-};
-
-// 008
-class BGSRepairItemList : public BaseFormComponent {
-public:
-	BGSRepairItemList();
-	~BGSRepairItemList();
-
-	BGSListForm* listForm;	// 04
-};
-
-// 008
-class BGSEquipType : public BaseFormComponent {
-public:
-	BGSEquipType();
-	~BGSEquipType();
-
-	uint32_t	equipType;	// 08
-};
-
-// 004
-class BGSPreloadable : public BaseFormComponent {
-public:
-	BGSPreloadable();
-	~BGSPreloadable();
-
-	virtual void	Fn_04(void); // pure virtual
-};
-
-// 008
-class BGSBipedModelList : public BaseFormComponent {
-public:
-	BGSBipedModelList();
-	~BGSBipedModelList();
-
-	BGSListForm* models;		// 004
-	// 008
-};
-
-// 018
-class TESModelRDT : public TESModel {
-public:
-	TESModelRDT();
-	~TESModelRDT();
-
-	virtual uint32_t	Fn_07(void);
-};
-
-// 0DC
-class TESBipedModelForm : public BaseFormComponent {
-public:
-	TESBipedModelForm();
-	~TESBipedModelForm();
-
-	// bit indices starting from lsb
-	enum EPartBit {
-		ePart_Head = 0,
-		ePart_Hair,
-		ePart_UpperBody,
-		ePart_LeftHand,
-		ePart_RightHand,
-		ePart_Weapon,
-		ePart_PipBoy,
-		ePart_Backpack,
-		ePart_Necklace,
-		ePart_Headband,
-		ePart_Hat,
-		ePart_Eyeglasses,
-		ePart_Nosering,
-		ePart_Earrings,
-		ePart_Mask,
-		ePart_Choker,
-		ePart_MouthObject,
-		ePart_BodyAddon1,
-		ePart_BodyAddon2,
-		ePart_BodyAddon3
-	};
-
-	enum EPartBitMask {
-		ePartBitMask_Full = 0x07FFFF,
-	};
-
-	enum ESlot {
-		eSlot_Head = 0x1 << ePart_Head,
-		eSlot_Hair = 0x1 << ePart_Hair,
-		eSlot_UpperBody = 0x1 << ePart_UpperBody,
-		eSlot_LeftHand = 0x1 << ePart_LeftHand,
-		eSlot_RightHand = 0x1 << ePart_RightHand,
-		eSlot_Weapon = 0x1 << ePart_Weapon,
-		eSlot_PipBoy = 0x1 << ePart_PipBoy,
-		eSlot_Backpack = 0x1 << ePart_Backpack,
-		eSlot_Necklace = 0x1 << ePart_Necklace,
-		eSlot_Headband = 0x1 << ePart_Headband,
-		eSlot_Hat = 0x1 << ePart_Hat,
-		eSlot_Eyeglasses = 0x1 << ePart_Eyeglasses,
-		eSlot_Nosering = 0x1 << ePart_Nosering,
-		eSlot_Earrings = 0x1 << ePart_Earrings,
-		eSlot_Mask = 0x1 << ePart_Mask,
-		eSlot_Choker = 0x1 << ePart_Choker,
-		eSlot_MouthObject = 0x1 << ePart_MouthObject,
-		eSlot_BodyAddon1 = 0x1 << ePart_BodyAddon1,
-		eSlot_BodyAddon2 = 0x1 << ePart_BodyAddon2,
-		eSlot_BodyAddon3 = 0x1 << ePart_BodyAddon3
-	};
-
-	enum EBipedFlags {
-		eBipedFlag_HasBackPack = 0x4,
-		eBipedFlag_MediumArmor = 0x8,
-		eBipedFlag_PowerArmor = 0x20,
-		eBipedFlag_NonPlayable = 0x40,
-		eBipedFlag_HeavyArmor = 0x80,
-	};
-
-	enum EBipedPath {
-		ePath_Biped,
-		ePath_Ground,
-		ePath_Icon,
-		ePath_Max
-	};
-
-	// missing part mask and flags
-	uint32_t					partMask;			// 004
-	uint32_t					bipedFlags;			// 008
-	TESModelTextureSwap		bipedModel[2];		// 00C
-	TESModelTextureSwap		groundModel[2];		// 04C
-	TESIcon					icon[2];			// 08C
-	BGSMessageIcon			messageIcon[2];		// 0A4
-	TESModelRDT				modelRDT;			// 0C4
-	// 0DC
-
-	static uint32_t MaskForSlot(uint32_t mask);
-
-	bool IsPowerArmor() const { return (bipedFlags & eBipedFlag_PowerArmor) == eBipedFlag_PowerArmor; }
-	bool IsNonPlayable() const { return (bipedFlags & eBipedFlag_NonPlayable) == eBipedFlag_NonPlayable; }
-	bool IsPlayable() const { return !IsNonPlayable(); }
-	void SetPlayable(bool doset) { if (doset) bipedFlags &= ~eBipedFlag_NonPlayable; else bipedFlags |= eBipedFlag_NonPlayable; }
-	void SetPowerArmor(bool bPA) {
-		if (bPA) {
-			bipedFlags |= eBipedFlag_PowerArmor;
-		}
-		else {
-			bipedFlags &= ~eBipedFlag_PowerArmor;
-		}
-	}
-	void SetNonPlayable(bool bNP) {
-		if (bNP) {
-			bipedFlags |= eBipedFlag_NonPlayable;
-		}
-		else {
-			bipedFlags &= ~eBipedFlag_NonPlayable;
-		}
-	}
-	void  SetPath(const char* newPath, uint32_t whichPath, bool bfemalePath);
-	const char* GetPath(uint32_t whichPath, bool bFemalePath);
-
-	uint32_t GetSlotsMask() const;
-	void SetSlotsMask(uint32_t mask);	// Limited by ePartBitMask_Full
-
-	uint32_t GetBipedMask() const;
-	void SetBipedMask(uint32_t mask);
-};
-
-#ifdef GAME
-static_assert(sizeof(TESBipedModelForm) == 0x0DC);
-#else
-static_assert(sizeof(TESBipedModelForm) == 0x168);
-#endif
 
 // 0C
 struct LvlListExtra {
@@ -844,303 +394,6 @@ struct LvlListExtra {
 	};
 	float			health;		// 08
 };
-
-// 0C
-class TESContainer : public BaseFormComponent {
-public:
-	TESContainer();
-	~TESContainer();
-
-	struct FormCount {
-		int32_t			count;			//	00
-		TESForm*		form;			//	04
-		LvlListExtra*	contExtraData;	//	08
-	};
-	typedef tList<FormCount> FormCountList;
-
-	FormCountList	formCountList;	// 04
-
-	static bool ContainerCanHoldType(uint8_t aucFormType);
-
-	static bool ContainerCanHoldForm(const TESForm* apForm);
-};
-
-// 00C
-class BGSTouchSpellForm : public BaseFormComponent {
-public:
-	BGSTouchSpellForm();
-	~BGSTouchSpellForm();
-
-	TESForm*	unarmedEffect;	// 04
-	uint16_t		unarmedAnim;	// 08
-	uint16_t		pad0A;			// 0A
-};
-
-class FactionRank;
-
-// 034
-class TESActorBaseData : public BaseFormComponent {
-public:
-	TESActorBaseData();
-	~TESActorBaseData();
-
-	virtual void			Fn_04(TESForm* selectedForm);	// Called during form initialization after LoadForm and InitForm
-	// flags access
-	virtual bool			Fn_05(void);	// 00100000
-	virtual bool			Fn_06(void);	// 00200000
-	virtual bool			Fn_07(void);	// 10000000
-	virtual bool			Fn_08(void);	// 20000000
-	virtual bool			GetAsForm(void);	// 80000000
-	virtual bool			Fn_0A(void);	// 00400000
-	virtual bool			Fn_0B(void);	// 00400000
-	virtual bool			Fn_0C(void);	// 00800000
-	virtual bool			Fn_0D(void);
-	virtual bool			Fn_0E(void);
-	virtual bool			Fn_0F(void);
-	virtual bool			Fn_10(void);
-	virtual bool			Fn_11(void);
-	virtual bool			Fn_12(void);
-	virtual void			Fn_13(void* arg);
-	virtual bool			Fn_14(void);
-	virtual void			Fn_15(void* arg);
-	virtual uint32_t			Fn_16(void);
-	virtual void			Fn_17(void* arg);
-	virtual uint32_t			Fn_18(void);	// return unk08
-	virtual float			Fn_19(void);	// return unk14
-	virtual BGSVoiceType* GetVoiceType(void);
-
-	enum {
-		kFlags_Female = 1 << 0,
-		kFlags_Essential = 1 << 1,
-		kFlags_HasCharGenFace = 1 << 2,
-		kFlags_Respawn = 1 << 3,
-		kFlags_AutoCalcStats = 1 << 4,
-		//								1 << 5,
-		//								1 << 6,
-		kFlags_PCLevelMult = 1 << 7,
-		kFlags_UseTemplate = 1 << 8,
-		kFlags_NoLowLevelProcessing = 1 << 9,
-		//								1 << 10,
-		kFlags_NoBloodSpray = 1 << 11,
-		kFlags_NoBloodDecal = 1 << 12,
-		//								1 << 13,
-		//								1 << 14,
-		//								1 << 15,
-		//								1 << 16,
-		//								1 << 17,
-		//								1 << 18,
-		//								1 << 19,
-		kFlags_NoVATSMelee = 1 << 20,
-		//								1 << 21,
-		kFlags_CanBeAllRaces = 1 << 22,
-		//								1 << 23,
-		//								1 << 24,
-		//								1 << 25,
-		kFlags_NoKnockdowns = 1 << 26,
-		kFlags_NotPushable = 1 << 27,
-		//								1 << 28,
-		//								1 << 29,
-		kFlags_NoRotateToHeadTrack = 1 << 30,
-		//								1 << 31,
-	};
-
-	uint32_t			flags;				// 04	Comparing with LoadForm and FNVEdit
-	uint16_t			fatigue;			// 08	Fatique
-	uint16_t			barterGold;			// 0A	Barter Gold
-	int16_t			level;				// 0C	Level/ Level Mult
-	uint16_t			calcMin;			// 0E	Calc min
-	uint16_t			calcMax;			// 10	Calc max
-	uint16_t			speedMultiplier;	// 12	Speed Multiplier (confirmed)
-	float			karma;				// 14	Karma
-	uint16_t			dispositionBase;	// 18	Disposition Base
-	uint16_t			templateFlags;		// 1A	Template Flags
-	TESForm*		deathItem;		// 1C	Death Item: object or FormList
-	BGSVoiceType*	voiceType;		// 20
-	TESForm*		templateActor;		// 24	Points toward Template
-#ifdef GAME
-	uint32_t			changedFlags;		// 28/000	Absent in Editor
-#endif
-	BSSimpleList<FactionRank*>	factionList;	// 2C/28
-
-	char GetFactionRank(TESFaction* faction);
-	void SetFactionRank(TESFaction* faction, char rank);
-
-	bool IsFemale() { return flags & kFlags_Female ? true : false; }	// place holder until GECK
-};
-
-// 14
-class TESSpellList : public BaseFormComponent {
-public:
-	enum {
-		kModified_BaseSpellList = 0x00000020,
-		// CHANGE_ACTOR_BASE_SPELLLIST
-		//	uint16_t	numSpells;
-		//	uint32_t	spells[numSpells];
-	};
-
-	TESSpellList();
-	~TESSpellList();
-
-	virtual uint32_t	GetSaveSize(uint32_t changedFlags);
-	virtual void	Save(uint32_t changedFlags);
-	virtual void	Load(uint32_t changedFlags);
-
-	tList<SpellItem>	spellList;			// 004
-	tList<SpellItem>	leveledSpellList;	// 00C
-
-	uint32_t	GetSpellCount() const {
-		return spellList.Count();
-	}
-
-	// return the nth spell
-	SpellItem* GetNthSpell(int32_t whichSpell) const {
-		return spellList.GetNthItem(whichSpell);
-	}
-
-	// removes all spells and returns how many spells were removed
-	//uint32_t RemoveAllSpells();
-};
-
-// 020
-class TESAIForm : public BaseFormComponent {
-public:
-	TESAIForm();
-	~TESAIForm();
-
-	typedef tList<TESPackage> PackageList;
-
-	virtual uint32_t	GetSaveSize(uint32_t changedFlags);
-	virtual void	Save(uint32_t changedFlags);
-	virtual void	Load(uint32_t changedFlags);
-
-	uint8_t	agression;				// 04
-	uint8_t	confidence;				// 05
-	uint8_t	energyLevel;			// 06
-	uint8_t	responsibility;			// 07
-	uint8_t	mood;					// 08
-	uint8_t	pad09[3];				// 09
-
-	uint32_t	buySellsAndServices;	// 0C
-	uint8_t	teaches;				// 10
-	uint8_t	maximumTrainingLevel;	// 11
-	uint8_t	assistance;				// 12
-	uint8_t	aggroRadiusBehavior;	// 13
-	int32_t	aggroRadius;			// 14
-
-	PackageList	packageList;	// 18
-
-	uint32_t	GetPackageCount() const {
-		return packageList.Count();
-	}
-
-	// return the nth package
-	TESPackage* GetNthPackage(int32_t anIndex) const {
-		return packageList.GetNthItem(anIndex);
-	}
-
-	// replace the nth package
-	TESPackage* SetNthPackage(TESPackage* pPackage, int32_t anIndex) {
-		return packageList.ReplaceNth(anIndex == -1 ? eListEnd : anIndex, pPackage);
-	}
-
-	// return the nth package
-	int32_t AddPackageAt(TESPackage* pPackage, int32_t anIndex) {
-		return packageList.AddAt(pPackage, anIndex == -1 ? eListEnd : anIndex);
-	}
-
-	TESPackage* RemovePackageAt(int32_t anIndex) {
-		return packageList.RemoveNth(anIndex == -1 ? eListEnd : anIndex);
-	}
-
-	// removes all packages and returns how many were removed
-	uint32_t RemoveAllPackages() const {
-		uint32_t cCount = GetPackageCount();
-		packageList.RemoveAll();
-		return cCount - GetPackageCount();
-	}
-};
-
-// 00C
-class TESAttributes : public BaseFormComponent {
-public:
-	TESAttributes();
-	~TESAttributes();
-
-	enum {
-		kStrength = 0,
-		kPerception,
-		kEndurance,
-		kCharisma,
-		kIntelligence,
-		kAgility,
-		kLuck,
-	};
-
-	uint8_t	attributes[7];	// 4
-	uint8_t	padB;			// B
-};
-
-// 00C
-class TESAnimation : public BaseFormComponent {
-public:
-	TESAnimation();
-	~TESAnimation();
-
-	//uint32_t	unk004;	// constructor and Fn_01 sugest this is a tList of char string.
-	//uint32_t	unk008;
-#ifdef EDITOR
-	BSSimpleList<void*> kUnk04;
-#endif
-	tList<char>	animNames;
-	// 00C
-};
-
-class ActorValueOwner {
-public:
-	ActorValueOwner();
-	~ActorValueOwner();
-
-	virtual uint32_t	GetBaseActorValueI(uint32_t avCode);		// GetBaseActorValue (used from Eval) result in EAX
-	virtual float	GetBaseActorValueF(uint32_t avCode);			// GetBaseActorValue internal, result in st
-	virtual int		GetActorValueI(uint32_t avCode);					// GetActorValue internal, result in EAX
-	virtual float	GetActorValueF(uint32_t avCode);			// GetActorValue (used from Eval) result in EAX
-	virtual float	GetTemporaryModifier(uint32_t avCode);					// GetBaseActorValue04 (internal) result in st
-	virtual float	GetDamageModifier(uint32_t avCode);
-	virtual float	GetPermanentModifier(uint32_t avCode);					// GetDamageActorValue or GetModifiedActorValue		called from Fn_08, result in st, added to Fn_01
-	virtual uint32_t	GetPermanentActorValueI(uint32_t avCode);					// Manipulate GetPermanentActorValueF, maybe convert to integer.
-	virtual float	GetPermanentActorValueF(uint32_t avCode);	// GetPermanentActorValueF (used from Eval) result in EAX
-	virtual TESForm* GetAsForm(void);							// GetActorBase (= this - 0x100) or GetActorBase (= this - 0x0A4)
-	virtual uint16_t	GetLevel();								// GetLevel (from ActorBase)
-
-	// SkillsCurrentValue[14] at index 20
-};
-
-static_assert(sizeof(ActorValueOwner) == 0x004);
-
-class CachedValuesOwner {
-public:
-	CachedValuesOwner();
-	~CachedValuesOwner();
-
-	virtual float	Fn_00(void);
-	virtual float	Fn_01(void);
-	virtual float	Fn_02(void);
-	virtual float	Fn_03(void);
-	virtual float	Fn_04(void);
-	virtual float	Fn_05(void);
-	virtual float	Fn_06(void);
-	virtual float	Fn_07(void);
-	virtual float	Fn_08(void);
-	virtual float	GetAsForm(void);
-	virtual float	Fn_0A(void);
-	virtual uint32_t	Fn_0B(void);
-	virtual uint32_t	Fn_0C(void);
-	virtual float	Fn_0D(void);
-	virtual float	Fn_0E(void);
-	virtual bool	Fn_0F(void);
-};
-
-static_assert(sizeof(CachedValuesOwner) == 0x004);
 
 // 10C
 class TESActorBase : public TESBoundAnimObject {
@@ -1172,6 +425,10 @@ public:
 	ActorValueOwner				avOwner;		// 100
 	BGSDestructibleObjectForm	destructible;	// 104
 	// 10C
+
+	SEX GetSex() const {
+		return ThisCall<SEX>(0x5F0CC0, this);
+	}
 };
 
 #ifdef GAME
@@ -1179,69 +436,6 @@ static_assert(sizeof(TESActorBase) == 0x10C);
 #else
 static_assert(sizeof(TESActorBase) == 0x140);
 #endif
-
-// 14
-class TESModelList : public BaseFormComponent {
-public:
-	TESModelList();
-	~TESModelList();
-
-	tList<char>		modelList;	// 04
-	uint32_t			count;		// 0C
-	uint32_t			unk10;		// 10
-
-	bool ModelListAction(char* path, char action);
-	void CopyFrom(TESModelList* source);
-};
-
-// 008
-class TESDescription : public BaseFormComponent {
-public:
-	TESDescription();
-	~TESDescription();
-
-	virtual const char* Get(TESForm* overrideForm, uint32_t chunkID) const;
-
-#ifdef GAME
-	uint32_t	formDiskOffset;
-#else
-	BSString strText;
-	uint32_t uiDlgItem;
-#endif
-};
-
-// 10
-class TESReactionForm : public BaseFormComponent {
-public:
-	TESReactionForm();
-	~TESReactionForm();
-
-	struct Reaction {
-		enum {
-			kNeutral = 0,
-			kEnemy,
-			kAlly,
-			kFriend
-		};
-
-		TESFaction* faction;
-		int32_t		modifier;
-		uint32_t		reaction;
-	};
-
-	tList <Reaction>	reactions;	// 4
-	uint8_t	unkC;		// C
-	uint8_t	padD[3];	// D
-};
-
-// 08
-class TESRaceForm : public BaseFormComponent {
-public:
-	TESRaceForm();
-	~TESRaceForm();
-
-	TESRace* race;	// 04
-};
 
 // 8
 // ### derives from NiObject
@@ -1252,17 +446,6 @@ public:
 
 	void* _vtbl;	// 0
 	uint32_t	unk04;		// 4
-};
-
-// 0C
-class TESSoundFile : public BaseFormComponent {
-public:
-	TESSoundFile();
-	~TESSoundFile();
-
-	virtual void	Set(const char* str);
-
-	BSString			path;	// 04
 };
 
 // 24
@@ -1298,7 +481,7 @@ public:
 
 		uint8_t			byte00;			// 00
 		uint8_t			pad01[3];		// 01
-		ConditionList	conditions;		// 04
+		TESCondition	conditions;		// 04
 		TESObjectREFR*	target;			// 0C
 		Data			data;			// 10
 	};
@@ -1313,24 +496,9 @@ public:
 	int32_t GetTargetIndex(TESObjectREFR* refr);
 };
 
-class BGSOpenCloseForm {
-public:
-	virtual void	Unk_00(uint32_t arg0, uint32_t arg1);
-	virtual void	Unk_01(uint32_t arg0, uint32_t arg1);
-	virtual bool	Unk_02(void);
-
-	BGSOpenCloseForm();
-	~BGSOpenCloseForm();
-};
-
 /**** forms ****/
 
 class TESTopic;
-class TESModelAnim : public TESModel {
-public:
-	TESModelAnim();		// Identical to TESModel with a different vTable
-	~TESModelAnim();
-};	// 018
 
 // 54
 class TESIdleForm : public TESForm {
@@ -1365,7 +533,7 @@ public:
 	};
 
 	TESModelAnim					anim;			// 018
-	ConditionList					conditions;		// 030
+	TESCondition					conditions;		// 030
 	Data							data;			// 038
 	BSSimpleArray<TESIdleForm*>*	children;		// 040	NiFormArray, contains all idle anims in path if eIFgf_flagUnknown is set
 	TESIdleForm*					parent;			// 044
@@ -1406,7 +574,7 @@ public:
 		tList<TESTopic>		followUps;
 	};
 
-	ConditionList		conditions;			// 18
+	TESCondition		conditions;			// 18
 	uint16_t				unk20;				// 20
 	bool				saidOnce;			// 22
 	uint8_t				type;				// 23
@@ -1536,21 +704,6 @@ public:
 static_assert(sizeof(BGSTextureSet) == 0xA0);
 #else
 static_assert(sizeof(BGSTextureSet) == 0x10C);
-#endif
-
-// 24
-class BGSMenuIcon : public TESForm {
-public:
-	BGSMenuIcon();
-	~BGSMenuIcon();
-
-	TESIcon	icon;	// 18
-};
-
-#ifdef GAME
-static_assert(sizeof(BGSMenuIcon) == 0x24);
-#else
-static_assert(sizeof(BGSMenuIcon) == 0x48);
 #endif
 
 // 28
@@ -1940,118 +1093,6 @@ static_assert(sizeof(TESSkill) == 0x60);
 static_assert(sizeof(TESSkill) == 0xAC);
 #endif
 
-// B0
-class EffectSetting : public TESForm {
-public:
-	EffectSetting();
-	~EffectSetting();
-
-	enum {
-		kArchType_ValueModifier = 0,
-		kArchType_Script,
-		kArchType_Dispel,
-		kArchType_CureDisease,
-		kArchType_Absorb,
-		kArchType_Shield,
-		kArchType_Calm,
-		kArchType_Demoralize,
-		kArchType_Frenzy,
-		kArchType_CommandCreature,
-		kArchType_CommandHumanoid,
-		kArchType_Invisibility,
-		kArchType_Chameleon,
-		kArchType_Light,
-		kArchType_Darkness,
-		kArchType_NightEye,
-		kArchType_Lock,
-		kArchType_Open,
-		kArchType_BoundItem,
-		kArchType_SummonCreature,
-		kArchType_DetectLife,
-		kArchType_Telekinesis,
-		kArchType_DisintigrateArmor,
-		kArchType_DisinitgrateWeapon,
-		kArchType_Paralysis,
-		kArchType_Reanimate,
-		kArchType_SoulTrap,
-		kArchType_TurnUndead,
-		kArchType_SunDamage,
-		kArchType_Vampirism,
-		kArchType_CureParalysis,
-		kArchType_CureAddiction,
-		kArchType_CurePoison,
-		kArchType_Concussion,
-		kArchType_ValueAndParts,
-		kArchType_LimbCondition,
-		kArchType_Turbo,
-	};
-
-	enum EffectFlags {
-		kEffectFlag_HOSTILE = 0x1,
-		kEffectFlag_RECOVER = 0x2,
-		kEffectFlag_DETRIMENTAL = 0x4,
-		kEffectFlag_UNK_8 = 0x8, 
-		kEffectFlag_SELF = 0x10,
-		kEffectFlag_TOUCH = 0x20,
-		kEffectFlag_TARGET = 0x40, 
-		kEffectFlag_NO_DURATION = 0x80,
-		kEffectFlag_NO_MAGNITUDE = 0x100,
-		kEffectFlag_NO_AREA = 0x200,
-		kEffectFlag_PERSIST = 0x400,
-		kEffectFlag_CREATE_SPELLMAKING = 0x800,
-		kEffectFlag_GORY_VISUALS = 0x1000,
-		kEffectFlag_kDisplayNameOnly = 0x2000,
-		kEffectFlag_kRadioBroadcastSomething = 0x8000,
-		kEffectFlag_kUseSkill = 0x80000,
-		kEffectFlag_kUseAttribute = 0x100000,
-		kEffectFlag_PAINLESS = 0x1000000,
-		kEffectFlag_kSprayProjectileType = 0x2000000,
-		kEffectFlag_kBoltProjectileType = 0x4000000,
-		kEffectFlag_NO_HIT_EFFECT = 0x8000000,
-		kEffectFlag_NO_DEATH_DISPEL = 0x10000000,
-	};
-
-	TESModel		model;			// 18
-	TESDescription	description;	// 30
-	TESFullName		fullName;		// 38
-	TESIcon			icon;			// 44
-	uint32_t			unk50;			// 50
-	uint32_t			unk54;			// 54
-	uint32_t			effectFlags;	// 58
-	float			unk5C;			// 5C
-	TESForm* associatedItem;// 60	// Script* for ScriptEffects
-	uint32_t			unk64;			// 64
-	uint32_t			resistVal;		// 68 - actor value for resistance
-	uint16_t			unk6C;			// 6C
-	uint8_t			pad6E[2];		// 6E
-	TESObjectLIGH* light;			// 70
-	float			projectileSpeed;// 74
-	TESEffectShader* effectShader;	// 78 - effect shader
-	uint32_t			unk7C;			// 7C
-	uint32_t			unk80;			// 80
-	uint32_t			unk84;			// 84
-	uint32_t			hitSound;		// 88
-	uint32_t			unk8C;			// 8C
-	float			unk90;			// 90 - fMagicDefaultCEEnchantFactor
-	float			unk94;			// 94 - fMagicDefaultCEBarterFactor
-	uint8_t			archtype;		// 98
-	uint8_t			pad99[3];		// 99
-	uint8_t			actorVal;		// 9C - actor value
-	uint8_t			pad9D[3];		// 9D
-	uint32_t			unkA0;			// A0
-	uint32_t			unkA4;			// A4
-#ifdef GAME
-	uint32_t			unkA8;			// A8
-	uint32_t			unkAC;			// AC
-#endif
-};
-
-#ifdef GAME
-static_assert(sizeof(EffectSetting) == 0xB0);
-#else
-static_assert(sizeof(EffectSetting) == 0xE0);
-#endif
-
 // 68
 class TESGrass : public TESBoundObject {
 public:
@@ -2231,7 +1272,7 @@ public:
 		BSString			resultText;
 		Script*				resultScript;
 		uint8_t				pad[78];
-		tList<Condition>	conditions;
+		TESCondition		conditions;
 		BGSNote*			displayNote;
 		BGSTerminal*		subMenu;
 		uint8_t				entryFlags;
@@ -2287,7 +1328,7 @@ public:
 	uint8_t						overrideSounds;			// 18C
 	uint8_t						pad18D[3];				// 18D
 	void SetFacegenFlag(uint32_t pFlag, uint32_t bFemale, bool bEnable) {
-		bipedModel.bipedModel[bFemale].ucFaceGenFlags.Set(pFlag, bEnable);
+		bipedModel.kBipedModels[bFemale].ucFlags.Set(pFlag, bEnable);
 	}
 };
 #ifdef GAME
@@ -3305,19 +2346,6 @@ public:
 static_assert(sizeof(AlchemyItem) == 0xD8);
 #endif
 
-class BGSIdleCollection : public BaseFormComponent {
-public:
-	BGSIdleCollection();
-	~BGSIdleCollection();
-
-	uint8_t flags;
-	uint8_t animCount;
-	TESIdleForm** idleList;
-	float idleTimer;
-};
-
-static_assert(sizeof(BGSIdleCollection) == 0x10);
-
 class BGSIdleMarker : public TESBoundObject {
 public:
 	BGSIdleMarker();
@@ -3517,53 +2545,6 @@ static_assert(sizeof(TESClimate) == 0x58);
 static_assert(sizeof(TESClimate) == 0xB4);
 #endif
 
-enum RegionDataID {
-	REGION_DATA_NONE			= 0,
-	REGION_DATA_GENERAL_ID		= 1,
-	REGION_DATA_OBJECTS_ID		= 2,
-	REGION_DATA_WEATHER_ID		= 3,
-	REGION_DATA_MAP_ID			= 4,
-	REGION_DATA_LANDSCAPE_ID	= 5,
-	REGION_DATA_GRASS_ID		= 6,
-	REGION_DATA_SOUND_ID		= 7,
-	REGION_DATA_IMPOSTER		= 8,
-	REGION_DATA_COUNT			= 9,
-};
-
-struct RegionData {
-	RegionDataID	eDataTypeID;
-	bool			bOverride;
-	uint8_t			cPriority;
-};
-
-// 08
-class TESRegionData {
-public:
-	TESRegionData();
-
-	enum {
-		kRegionData_Weather = 3,
-		kRegionData_Map,
-		kRegionData_Landscape,
-		kRegionData_Grass,
-		kRegionData_Sound,
-		kRegionData_Imposter
-	};
-
-	virtual					~TESRegionData();
-	virtual void			Save();
-	virtual bool			LoadRegionData(RegionData* apData);
-	virtual void			Initialize(TESRegion* apRegion);
-	virtual RegionDataID	GetID() const;
-	virtual TESRegionData*	Copy();
-	virtual TESRegionData*	Blend(TESRegionData* apRegionData);
-	virtual void			BlendInto(TESRegionData* apRegionData, uint32_t auiTotalBlending);
-	virtual bool			Validate() const;
-
-	bool	bOverride;
-	bool	bIgnore;
-	uint8_t	cPriority;
-};
 typedef tList<TESRegionData> RegionDataEntryList;
 
 class TESRegionDataGrass : public TESRegionData {
@@ -3672,16 +2653,6 @@ static_assert(sizeof(TESRegion) == 0x38);
 #else
 static_assert(sizeof(TESRegion) == 0x50);
 #endif
-
-// 10
-class TESRegionList : public BSSimpleList<TESRegion*> {
-public:
-	TESRegionList();
-	virtual ~TESRegionList();
-
-	bool			bOwnsRegionMemory;		// 0C
-};
-static_assert(sizeof(TESRegionList) == 0x10);
 
 // NavMeshInfoMap (40)
 class NavMeshInfoMap;
@@ -4086,7 +3057,7 @@ public:
 	tList<void>				lVarOrObjectives;	// 4C
 		// So: this list would contain both Objectives and LocalVariables !
 		// That seems very strange but still, looking at Get/SetObjective... and ShowQuestVars there's no doubt.
-	ConditionList			conditions;			// 54
+	TESCondition			conditions;			// 54
 #ifdef EDITOR
 	uint32_t				unk84;
 #endif
@@ -4774,7 +3745,7 @@ public:
 	uint32_t					reqSkillLevel;	// 28
 	uint32_t					categoryID;		// 2C
 	uint32_t					subCategoryID;	// 30
-	ConditionList			conditions;		// 34
+	TESCondition			conditions;		// 34
 	ComponentList			inputs;			// 3C
 	ComponentList			outputs;		// 44
 	uint32_t					unk4C;			// 4C
@@ -5164,9 +4135,9 @@ public:
 };
 
 struct EntryPointConditions {
-	ConditionList		tab1;
-	ConditionList		tab2;
-	ConditionList		tab3;
+	TESCondition		tab1;
+	TESCondition		tab2;
+	TESCondition		tab3;
 };
 
 // 14
@@ -5206,7 +4177,7 @@ public:
 	TESDescription			description;		// 24
 	TESIcon					icon;				// 2C
 	PerkData				data;				// 38
-	ConditionList			conditions;			// 40
+	TESCondition			conditions;			// 40
 	tList<BGSPerkEntry>		entries;			// 48
 
 	bool IsPerkAttainable(TESObjectREFR* apReference) const {
@@ -5286,65 +4257,6 @@ public:
 static_assert(sizeof(TESChallenge) == 0x7C);
 #else
 static_assert(sizeof(TESChallenge) == 0xB8);
-#endif
-
-// B0
-class BGSBodyPart : public BaseFormComponent {
-public:
-	BGSBodyPart();
-	~BGSBodyPart();
-
-	enum {
-		kFlags_Severable = 1,
-		kFlags_IKData = 2,
-		kFlags_BipedData = 4,
-		kFlags_Explodable = 8,
-		kFlags_IsHead = 16,
-		kFlags_Headtracking = 32,
-		kFlags_Absolute = 64,
-	};
-
-	BSString			partNode;				// 04
-	BSString			VATSTarget;				// 0C
-	BSString			startNode;				// 14
-	BSString			partName;				// 1C
-	BSString			targetBone;				// 24
-	TESModel			limbReplacement;		// 2C
-	uint32_t				unk44[6];				// 44
-	float				damageMult;				// 5C
-	uint8_t				flags;					// 60
-	uint8_t				pad61;					// 61
-	uint8_t				healthPercent;			// 62
-	uint8_t				actorValue;				// 63
-	uint8_t				toHitChance;			// 64
-	uint8_t				explChance;				// 65
-	uint8_t				explDebrisCount;		// 66
-	uint8_t				pad67;					// 67
-	BGSDebris*			explDebris;			// 68
-	BGSExplosion*		explExplosion;			// 6C
-	float				trackingMaxAngle;		// 70
-	float				explDebrisScale;		// 74
-	uint8_t				sevrDebrisCount;		// 78
-	uint8_t				pad79[3];				// 79
-	BGSDebris*			sevrDebris;			// 7C
-	BGSExplosion*		sevrExplosion;			// 80
-	float				sevrDebrisScale;		// 84
-	float				goreEffTranslate[3];	// 88
-	float				goreEffRotation[3];		// 94
-	BGSImpactDataSet*	sevrImpactDS;			// A0
-	BGSImpactDataSet*	explImpactDS;			// A4
-	uint8_t				sevrDecalCount;			// A8
-	uint8_t				explDecalCount;			// A9
-	uint8_t				padAA[2];				// AA
-	float				limbRepScale;			// AC
-
-	void SetFlag(uint32_t pFlag, bool bEnable) {
-		if (bEnable) flags |= pFlag;
-		else flags &= ~pFlag;
-	}
-};
-#ifdef GAME
-static_assert(sizeof(BGSBodyPart) == 0xB0);
 #endif
 
 // 74
@@ -5472,44 +4384,6 @@ static_assert(sizeof(BGSAddonNode) == 0x60);
 #else
 static_assert(sizeof(BGSAddonNode) == 0x94);
 #endif
-
-// C4
-class ActorValueInfo : public TESForm {
-public:
-	ActorValueInfo();
-	~ActorValueInfo();
-
-	TESFullName		fullName;
-	TESDescription	description;
-	TESIcon			icon;
-
-	char*			infoName;		// 38
-	BSString		avName;			// 3C
-	uint32_t			avFlags;		// 44
-		//		bit 0x01	used in list of modified ActorValue for Player and others. Either can damage or "special damage", see 0x00937280
-		//		bit 0x03
-		//		bit 0x04
-		//		bit 0x07
-		//		bit 0x08
-		//		bit 0x0B
-		//		bit 0x0C
-		//		bit 0x0E	canModify
-	uint32_t			unk48;			// 48
-	uint32_t			callback4C;		// 4C
-	uint32_t			unk50;			// 50
-	void(__cdecl*	onChangeCallback)(ActorValueOwner* avOwner, int avCode, float previousVal, float newVal, ActorValueOwner* avOwner2);
-	uint32_t			unk4C[27];		// 4C
-};
-#ifdef GAME
-static_assert(sizeof(ActorValueInfo) == 0xC4);
-#else
-static_assert(sizeof(ActorValueInfo) == 0xF0);
-#endif
-
-extern const ActorValueInfo** ActorValueInfoPointerArray;
-
-typedef ActorValueInfo* (*_GetActorValueInfo)(uint32_t actorValueCode);
-extern const _GetActorValueInfo GetActorValueInfo;
 
 // 20
 class BGSRadiationStage : public TESForm {
@@ -5750,7 +4624,7 @@ public:
 
 	struct Button {
 		BSString		label;
-		ConditionList	conditions;
+		TESCondition	conditions;
 	};
 
 	TESFullName		fullName;		// 18

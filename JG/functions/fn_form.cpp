@@ -561,9 +561,9 @@ bool Cmd_GetIdleMarkerAnimations_Execute(COMMAND_ARGS) {
 	*result = 0;
 	BGSIdleMarker* marker;
 	NVSEArrayVar* idleArr = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->idleCollection.animCount > 0) {
-		for (int i = 0; i < marker->idleCollection.animCount; i++) {
-			g_arrInterface->AppendElement(idleArr, NVSEArrayElement(marker->idleCollection.idleList[i]));
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->idleCollection.GetIdleCount() > 0) {
+		for (int i = 0; i < marker->idleCollection.GetIdleCount(); i++) {
+			g_arrInterface->AppendElement(idleArr, NVSEArrayElement(marker->idleCollection.ppIdles[i]));
 		}
 	}
 	g_arrInterface->AssignCommandResult(idleArr, result);
@@ -575,8 +575,8 @@ bool Cmd_SetIdleMarkerAnimation_Execute(COMMAND_ARGS) {
 	BGSIdleMarker* marker = nullptr;
 	TESIdleForm* newAnim = nullptr;
 	uint32_t animId;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &animId, &newAnim) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->idleCollection.animCount > animId) {
-		marker->idleCollection.idleList[animId] = newAnim;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &animId, &newAnim) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->idleCollection.GetIdleCount() > animId) {
+		marker->idleCollection.ppIdles[animId] = newAnim;
 		*result = 1;
 	}
 	return true;
@@ -598,9 +598,10 @@ bool Cmd_SetIdleMarkerAnimations_Execute(COMMAND_ARGS) {
 		for (uint32_t i = 0; i < size; i++) {
 			idleList[i] = (TESIdleForm*)elements[i].GetTESForm();
 		}
-		if (marker->idleCollection.idleList) BSMemory::free(marker->idleCollection.idleList);
-		marker->idleCollection.idleList = idleList;
-		marker->idleCollection.animCount = size;
+		if (marker->idleCollection.ppIdles) 
+			BSMemory::free(marker->idleCollection.ppIdles);
+		marker->idleCollection.ppIdles = idleList;
+		marker->idleCollection.ucIdleCount = size;
 		*result = 1;
 	}
 
@@ -614,13 +615,13 @@ bool Cmd_GetIdleMarkerTraitNumeric_Execute(COMMAND_ARGS) {
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &traitID) && marker && IS_TYPE(marker, BGSIdleMarker)) {
 		switch (traitID) {
 		case 1:
-			*result = marker->idleCollection.flags;
+			*result = marker->idleCollection.ucIdleFlags.Get();
 			break;
 		case 2:
-			*result = marker->idleCollection.idleTimer;
+			*result = marker->idleCollection.fTimerCheckForIdle;
 			break;
 		case 3:
-			*result = marker->idleCollection.animCount;
+			*result = marker->idleCollection.GetIdleCount();
 			break;
 		default:
 			return true;
@@ -638,10 +639,10 @@ bool Cmd_SetIdleMarkerTraitNumeric_Execute(COMMAND_ARGS) {
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &traitID, &newVal) && marker && IS_TYPE(marker, BGSIdleMarker)) {
 		switch (traitID) {
 		case 1:
-			marker->idleCollection.flags = newVal;
+			marker->idleCollection.ucIdleFlags = newVal;
 			break;
 		case 2:
-			marker->idleCollection.idleTimer = newVal;
+			marker->idleCollection.fTimerCheckForIdle = newVal;
 			break;
 		default:
 			return true;
@@ -653,13 +654,13 @@ bool Cmd_SetIdleMarkerTraitNumeric_Execute(COMMAND_ARGS) {
 TESModelTextureSwap* GetArmorModel(TESObjectARMO* armor, uint32_t id) {
 	switch (id) {
 	case 1:
-		return &armor->bipedModel.bipedModel[0]; // male biped
+		return &armor->bipedModel.kBipedModels[SEX::MALE];
 	case 2:
-		return &armor->bipedModel.bipedModel[1]; // female biped
+		return &armor->bipedModel.kBipedModels[SEX::FEMALE];
 	case 3:
-		return &armor->bipedModel.groundModel[0]; // male world
+		return &armor->bipedModel.kWorldModels[SEX::MALE];
 	case 4:
-		return &armor->bipedModel.groundModel[1]; //female world
+		return &armor->bipedModel.kWorldModels[SEX::FEMALE];
 	default:
 		return nullptr;
 	}
@@ -960,7 +961,7 @@ bool Cmd_GetAvailablePerks_Execute(COMMAND_ARGS) {
 	if (thisObj && thisObj->IsActor())
 		pTarget = static_cast<Actor*>(thisObj);
 
-	const uint32_t uiActorLevel = pTarget->avOwner.GetLevel();
+	const uint32_t uiActorLevel = pTarget->avOwner.GetActorLevel();
 
 	NVSEArrayVar* perkArr = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
 	auto pIter = TESDataHandler::GetSingleton()->kPerks.GetHead();
@@ -1036,7 +1037,7 @@ bool Cmd_GetPlayerKarmaTitle_Execute(COMMAND_ARGS) {
 	uint32_t titleOrTier = 0;
 	ExtractArgsEx(EXTRACT_ARGS_EX, &titleOrTier);
 	if (titleOrTier == 1) {
-		int karmaTier = CdeclCall<int>(0x47E040, PlayerCharacter::GetSingleton()->avOwner.GetActorValueF(kAVCode_Karma)); // GetKarmaTier
+		int karmaTier = CdeclCall<int>(0x47E040, PlayerCharacter::GetSingleton()->avOwner.GetActorValueF(ActorValue::Index::KARMA)); // GetKarmaTier
 		switch (karmaTier) {
 		case 0:
 			title = *(char**)0x11D41B4; // sAlignGood
@@ -1099,65 +1100,71 @@ bool Cmd_GetBodyPartTraitString_Execute(COMMAND_ARGS) {
 			if (const BGSBodyPart* bodyPart = bpData->bodyParts[partID]) {
 				switch (traitID) {
 				case 1:
-					if (bodyPart->partNode.GetLength()) resStr = bodyPart->partNode.c_str();
+					resStr = bodyPart->GetNodeName();
 					break;
 				case 2:
-					if (bodyPart->VATSTarget.GetLength()) resStr = bodyPart->VATSTarget.c_str();
+					resStr = bodyPart->GetTargetName();
 					break;
 				case 3:
-					if (bodyPart->startNode.GetLength()) resStr = bodyPart->startNode.c_str();
+					resStr = bodyPart->GetIKStartNodeName();
 					break;
 				case 4:
-					if (bodyPart->partName.GetLength()) resStr = bodyPart->partName.c_str();
+					resStr = bodyPart->GetPartName();
 					break;
 				case 5:
-					if (bodyPart->targetBone.GetLength()) resStr = bodyPart->targetBone.c_str();
+					resStr = bodyPart->GetGoreObjectName();
 					break;
 				default:
 					break;
 				}
 			}
 		}
+
+		if (!resStr)
+			resStr = "";
+
 		g_strInterface->Assign(PASS_COMMAND_ARGS, resStr);
 	}
 	return true;
 }
 
 bool Cmd_GetMessageIconPath_Execute(COMMAND_ARGS) {
-	uint32_t isFemale = 0;
-	TESForm* form = nullptr;
-	const char* path = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &form, &isFemale) && form) {
-		TESBipedModelForm* bipedModel = DYNAMIC_CAST(form, TESForm, TESBipedModelForm);
-		if (bipedModel) {
-			path = bipedModel->messageIcon[isFemale != 0].GetMessageIconTextureName();
+	BOOL bFemale = FALSE;
+	TESForm* pForm = nullptr;
+	const char* pPath = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pForm, &bFemale) && pForm) {
+		TESBipedModelForm* pBiped = TESBipedModelForm::GetFormAsBipedModel(pForm);
+		if (pBiped) {
+			const SEX eSex = bFemale ? SEX::FEMALE : SEX::MALE;
+			pPath = pBiped->kMessageIcons[eSex].GetMessageIconTextureName();
 		}
 		else {
-			BGSMessageIcon* icon = DYNAMIC_CAST(form, TESForm, BGSMessageIcon);
-			if (icon) {
-				path = icon->GetMessageIconTextureName();
-			}
+			BGSMessageIcon* pIcon = DYNAMIC_CAST(pForm, TESForm, BGSMessageIcon);
+			if (pIcon)
+				pPath = pIcon->GetMessageIconTextureName();
 		}
-		if (IsConsoleMode()) Console_Print("GetMessageIconPath >> %s", path);
-		g_strInterface->Assign(PASS_COMMAND_ARGS, path);
+		if (IsConsoleMode()) Console_Print("GetMessageIconPath >> %s", pPath);
+		g_strInterface->Assign(PASS_COMMAND_ARGS, pPath);
 	}
 	return true;
 }
+
 bool Cmd_SetMessageIconPath_Execute(COMMAND_ARGS) {
 	*result = 0;
-	char path[MAX_PATH] = {};
-	uint32_t isFemale = 0;
-	TESForm* form = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &path, &form, &isFemale) && form) {
-		TESBipedModelForm* bipedModel = DYNAMIC_CAST(form, TESForm, TESBipedModelForm);
-		if (bipedModel) {
-			bipedModel->messageIcon[isFemale != 0].SetMessageIconTextureName(path);
+	char cPath[MAX_PATH] = {};
+	BOOL bFemale = FALSE;
+	TESForm* pForm = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &cPath, &pForm, &bFemale) && pForm) {
+		TESBipedModelForm* pBiped = TESBipedModelForm::GetFormAsBipedModel(pForm);
+		if (pBiped) {
+			const SEX eSex = bFemale ? SEX::FEMALE : SEX::MALE;
+			pBiped->SetMessageIcon(eSex, cPath);
 			*result = 1;
 		}
 		else {
-			BGSMessageIcon* icon = DYNAMIC_CAST(form, TESForm, BGSMessageIcon);
-			if (icon) {
-				icon->SetMessageIconTextureName(path);
+			BGSMessageIcon* pIcon = DYNAMIC_CAST(pForm, TESForm, BGSMessageIcon);
+			if (pIcon) {
+				pIcon->SetMessageIconTextureName(cPath);
 				*result = 1;
 			}
 		}
@@ -1432,10 +1439,10 @@ bool Cmd_GetFactionMembers_Execute(COMMAND_ARGS) {
 				return;
 
 			TESActorBase* pActorBase = static_cast<TESActorBase*>(apObject);
-			if (pActorBase->baseData.factionList.IsEmpty())
+			if (pActorBase->baseData.GetFactionList()->IsEmpty())
 				return;
 
-			auto pIter = pActorBase->baseData.factionList.GetHead();
+			auto pIter = pActorBase->baseData.GetFactionList();
 			while (pIter && !pIter->IsEmpty()) {
 				FactionRank* pRank = pIter->GetItem();
 				pIter = pIter->GetNext();
@@ -1451,12 +1458,12 @@ bool Cmd_GetFactionMembers_Execute(COMMAND_ARGS) {
 bool Cmd_SetEquipType_Execute(COMMAND_ARGS) {
 	*result = 0;
 	TESForm* pForm = nullptr;
-	uint32_t newEquipType;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pForm, &newEquipType) && pForm && newEquipType <= 13) {
+	BGSEquipType::Type eType = BGSEquipType::Type::NONE;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pForm, &eType) && pForm && InRange(eType)) {
 		pForm = GetTESForm(pForm);
 		BGSEquipType* pEquipType = DYNAMIC_CAST(pForm, TESForm, BGSEquipType);
 		if (pEquipType) {
-			pEquipType->equipType = newEquipType;
+			pEquipType->SetEquipType(eType);
 			*result = 1;
 		}
 	}
@@ -1505,7 +1512,7 @@ bool Cmd_GetFacegenModelFlag_Execute(COMMAND_ARGS) {
 	*result = 0;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &armor, &flagID, &isFemale) && armor && IS_TYPE(armor, TESObjectARMO)) {
 		if (isFemale <= 1 && flagID <= 3) {
-			*result = armor->bipedModel.bipedModel[isFemale].ucFaceGenFlags.GetBit(flagID) ? 1 : 0;
+			*result = armor->bipedModel.kBipedModels[isFemale].ucFlags.GetBit(flagID);
 			if (IsConsoleMode()) {
 				Console_Print("GetFacegenModelFlag %i %i >> %.f", flagID, isFemale, *result);
 			}
@@ -1572,7 +1579,7 @@ bool Cmd_GetMusicTypePath_Execute(COMMAND_ARGS) {
 	BGSMusicType* mtype = nullptr;
 	const char* path = nullptr;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &mtype) && mtype && IS_TYPE(mtype, BGSMusicType)) {
-		path = mtype->soundFile.path.c_str();
+		path = mtype->soundFile.GetSoundFile();
 		g_strInterface->Assign(PASS_COMMAND_ARGS, path);
 		if (IsConsoleMode()) {
 			Console_Print("GetMusicTypePath >> %s", path);
@@ -1605,7 +1612,7 @@ bool Cmd_SetMusicTypePath_Execute(COMMAND_ARGS) {
 	BGSMusicType* mtype = nullptr;
 	char newPath[MAX_PATH] = {};
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &mtype, &newPath) && mtype && IS_TYPE(mtype, BGSMusicType)) {
-		mtype->soundFile.path.Set(newPath);
+		mtype->soundFile.SetSoundFile(newPath);
 		*result = 1;
 	}
 	return true;
@@ -1804,17 +1811,19 @@ bool Cmd_IsCellExpired_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetBaseEffectAV_Execute(COMMAND_ARGS) {
 	*result = -1;
-	EffectSetting* effect = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &effect) && effect && IS_TYPE(effect, EffectSetting) && (effect->archtype == 0) && effect->actorVal)
-		*result = effect->actorVal;
+	EffectSetting* pEffect = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pEffect) && pEffect && IS_TYPE(pEffect, EffectSetting)) {
+		if (pEffect->IsAssociatedActorValueUsed())
+			*result = pEffect->GetAssociatedActorValue();
+	}
 	return true;
 }
 
 bool Cmd_GetBaseEffectArchetype_Execute(COMMAND_ARGS) {
 	*result = -1;
-	EffectSetting* effect = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &effect) && effect && IS_TYPE(effect, EffectSetting))
-		*result = effect->archtype;
+	EffectSetting* pEffect = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pEffect) && pEffect && IS_TYPE(pEffect, EffectSetting))
+		*result = pEffect->GetEffectArchetype();
 	return true;
 }
 
@@ -2139,7 +2148,7 @@ bool Cmd_GetCameraShotImageSpaceModifier_Execute(COMMAND_ARGS) {
 	*result = 0;
 	BGSCameraShot* pCameraShot = nullptr;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pCameraShot) && pCameraShot && IS_TYPE(pCameraShot, BGSCameraShot)) {
-		TESImageSpaceModifier* pIMOD = pCameraShot->pModifier;
+		TESImageSpaceModifier* pIMOD = pCameraShot->GetFormImageSpaceModifier();
 		if (pIMOD) {
 			*reinterpret_cast<uint32_t*>(result) = pIMOD->GetFormID();
 		}
@@ -2157,7 +2166,7 @@ bool Cmd_SetCameraShotImageSpaceModifier_Execute(COMMAND_ARGS) {
 		if (pIMOD && !IS_TYPE(pIMOD, TESImageSpaceModifier))
 			return true;
 
-		pCameraShot->pModifier = pIMOD;
+		pCameraShot->SetFormImageSpaceModifier(pIMOD);
 		*result = 1;
 	}
 	return true;
@@ -2797,7 +2806,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		case FORM_TYPE::TESObjectIMOD:
 		{
 			const TESObjectIMOD* pItemMod = static_cast<TESObjectIMOD*>(pForm);
-			const char* pModDescription = pItemMod->description.Get(pForm, 'CSED');
+			const char* pModDescription = pItemMod->description.GetDescription(pForm, 'CSED');
 			if (pModDescription)
 				strcpy_s(cEffects, sizeof(cEffects), pModDescription);
 		}
@@ -2807,7 +2816,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		case FORM_TYPE::AlchemyItem:
 		{
 			const AlchemyItem* pAlchItem = static_cast<AlchemyItem*>(pForm);
-			pAlchItem->magicItem.list.GetEffectsString(cEffects, sizeof(cEffects));
+			pAlchItem->magicItem.GetEffectsString(cEffects, sizeof(cEffects));
 		}
 		break;
 
@@ -2824,7 +2833,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		{
 			const EnchantmentItem* pItem = TESEnchantableForm::GetFormEnchanting(pForm);
 			if (pItem)
-				pItem->magicItem.list.GetEffectsString(cEffects, sizeof(cEffects));
+				pItem->magicItem.GetEffectsString(cEffects, sizeof(cEffects));
 		}
 	}
 

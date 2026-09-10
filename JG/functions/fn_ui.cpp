@@ -225,14 +225,15 @@ bool Cmd_QueueCinematicText_Execute(COMMAND_ARGS) {
 };
 
 bool Cmd_SetBipedIconPathAlt_Execute(COMMAND_ARGS) {
-	BOOL bFemale = 0;
+	BOOL bFemale = FALSE;
 	TESForm* pForm = nullptr;
 	char cPath[MAX_PATH] = {};
 	*result = 0;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &cPath, &bFemale, &pForm) && pForm) {
-		TESBipedModelForm* pBipedModel = DYNAMIC_CAST(pForm, TESForm, TESBipedModelForm);
+		TESBipedModelForm* pBipedModel = TESBipedModelForm::GetFormAsBipedModel(pForm);
 		if (pBipedModel) {
-			pBipedModel->icon[bFemale].SetTextureName(cPath);
+			const SEX eSex = bFemale ? SEX::FEMALE : SEX::MALE;
+			pBipedModel->SetIcon(eSex, cPath);
 			*result = 1;
 		}
 	}
@@ -364,7 +365,7 @@ float CalculateRepairedHealth(ItemChange* target, ItemChange* repairItem) {
 	if (!target || !repairItem) return 0.0f;
 	float targetHealth = target->GetItemHealth(true);
 	float repairItemHealth = repairItem->GetItemHealth(true);
-	int repairSkill = PlayerCharacter::GetSingleton()->avOwner.GetActorValueI(kAVCode_Repair);
+	int repairSkill = PlayerCharacter::GetSingleton()->avOwner.GetActorValueI(ActorValue::Index::REPAIR);
 	int outParam = -1;
 	double result = CdeclCall<double>(0x648090, repairSkill, targetHealth, repairItemHealth, &outParam);
 	return (float)(result / 100.0);

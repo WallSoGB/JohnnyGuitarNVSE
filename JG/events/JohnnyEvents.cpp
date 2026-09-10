@@ -248,7 +248,7 @@ namespace JohnnyEvents {
 			}
 		}
 
-		static void __fastcall OnAVChange(ActorValueOwner* apActor, uint32_t aeActorValue, float afPreviousValue, float afModValue, void* apChangeCallback) {
+		static void __fastcall OnAVChange(ActorValueOwner* apActor, ActorValue::Index aeActorValue, float afPreviousValue, float afModValue, void* apChangeCallback) {
 			if (!apChangeCallback)
 				afPreviousValue = apActor->GetActorValueF(aeActorValue) - afModValue;
 
@@ -597,14 +597,14 @@ namespace JohnnyEvents {
 
 		HookUtils::CallDetour kOnAVChangeDetour;
 		STACK_FRAME_OPT_DISABLE
-		static ActorValueInfo* __cdecl OnAVChange(uint32_t aeActorValue) {
+		static ActorValueInfo* __cdecl OnAVChange(ActorValue::Index aeActorValue) {
 			uint8_t* pEBP = GetParentBasePtr(_AddressOfReturnAddress());
 			ActorValueOwner* pActor = *reinterpret_cast<ActorValueOwner**>(pEBP + 0x8);
 			float fOldVal = *reinterpret_cast<float*>(pEBP + 0x10);
 			float fNewVal = *reinterpret_cast<float*>(pEBP + 0x14);
 			ActorValueInfo* pInfo = CdeclCall<ActorValueInfo*>(kOnAVChangeDetour, aeActorValue);
 			if (pInfo)
-				Events::OnAVChange(pActor, aeActorValue, fOldVal, fNewVal, pInfo->onChangeCallback);
+				Events::OnAVChange(pActor, aeActorValue, fOldVal, fNewVal, pInfo->pModifiedCallback);
 			return pInfo;
 		}
 		STACK_FRAME_OPT_RESET
