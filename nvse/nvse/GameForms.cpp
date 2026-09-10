@@ -5,12 +5,8 @@
 #include "GameData.h"
 
 #if 1
-static const ActorValueInfo** ActorValueInfoPointerArray = (const ActorValueInfo**)0x0011D61C8;		// See GetActorValueInfo
-static const _GetActorValueInfo GetActorValueInfo = (_GetActorValueInfo)0x00066E920;	// See GetActorValueName
 BGSDefaultObjectManager** g_defaultObjectManager = (BGSDefaultObjectManager**)0x011CA80C;
 #else
-static const ActorValueInfo** ActorValueInfoPointerArray = (const ActorValueInfo**)0;
-static const _GetActorValueInfo GetActorValueInfo = (_GetActorValueInfo)0;
 BGSDefaultObjectManager** g_defaultObjectManager = (BGSDefaultObjectManager**)0x0;
 #endif
 
@@ -65,101 +61,6 @@ TESForm* TESForm::CloneForm(bool persist) const {
 	return result;
 }
 #endif
-
-// static
-uint32_t TESBipedModelForm::MaskForSlot(uint32_t slot) {
-	switch (slot) {
-		case ePart_Head:		return eSlot_Head;
-		case ePart_Hair:		return eSlot_Hair;
-		case ePart_UpperBody:	return eSlot_UpperBody;
-		case ePart_LeftHand:	return eSlot_LeftHand;
-		case ePart_RightHand:	return eSlot_RightHand;
-		case ePart_Weapon:		return eSlot_Weapon;
-		case ePart_PipBoy:		return eSlot_PipBoy;
-		case ePart_Backpack:	return eSlot_Backpack;
-		case ePart_Necklace:	return eSlot_Necklace;
-		case ePart_Headband:	return eSlot_Headband;
-		case ePart_Hat:			return eSlot_Hat;
-		case ePart_Eyeglasses:	return eSlot_Eyeglasses;
-		case ePart_Nosering:	return eSlot_Nosering;
-		case ePart_Earrings:	return eSlot_Earrings;
-		case ePart_Mask:		return eSlot_Mask;
-		case ePart_Choker:		return eSlot_Choker;
-		case ePart_MouthObject:	return eSlot_MouthObject;
-		case ePart_BodyAddon1:	return eSlot_BodyAddon1;
-		case ePart_BodyAddon2:	return eSlot_BodyAddon2;
-		case ePart_BodyAddon3:	return eSlot_BodyAddon3;
-		default:				return -1;
-	}
-}
-
-uint32_t TESBipedModelForm::GetSlotsMask() const {
-	return partMask;
-}
-
-void TESBipedModelForm::SetSlotsMask(uint32_t mask) {
-	partMask = (mask & ePartBitMask_Full);
-}
-
-uint32_t TESBipedModelForm::GetBipedMask() const {
-	return bipedFlags;
-}
-
-void TESBipedModelForm::SetBipedMask(uint32_t mask) {
-	bipedFlags = mask & 0xFF;
-}
-
-void TESBipedModelForm::SetPath(const char* newPath, uint32_t whichPath, bool bFemalePath) {
-	BSString* toSet = NULL;
-
-	switch (whichPath) {
-		case ePath_Biped:
-			toSet = &bipedModel[bFemalePath ? 1 : 0].strModel;
-			break;
-		case ePath_Ground:
-			toSet = &groundModel[bFemalePath ? 1 : 0].strModel;
-			break;
-		case ePath_Icon:
-			toSet = &icon[bFemalePath ? 1 : 0].strTextureName;
-			break;
-	}
-
-	if (toSet)
-		toSet->Set(newPath);
-}
-
-const char* TESBipedModelForm::GetPath(uint32_t whichPath, bool bFemalePath) {
-	BSString* pathStr = NULL;
-
-	switch (whichPath) {
-		case ePath_Biped:
-			pathStr = &bipedModel[bFemalePath ? 1 : 0].strModel;
-			break;
-		case ePath_Ground:
-			pathStr = &groundModel[bFemalePath ? 1 : 0].strModel;
-			break;
-		case ePath_Icon:
-			pathStr = &icon[bFemalePath ? 1 : 0].strTextureName;
-			break;
-	}
-
-	if (pathStr)
-		return pathStr->pString;
-	else
-		return "";
-}
-
-char TESActorBaseData::GetFactionRank(TESFaction* faction) {
-	auto pIter = factionList.GetHead();
-	while (pIter && !pIter->IsEmpty()) {
-		FactionRank* pRank = pIter->GetItem();
-		if (pRank && pRank->pFaction == faction)
-			return pRank->cRank;
-
-		pIter = pIter->GetNext();
-	}
-	return -1;
-}
 
 static const uint8_t kHandGripTable[] =
 {
@@ -226,17 +127,18 @@ TESObjectIMOD* TESObjectWEAP::GetItemMod(uint8_t which) {
 }
 
 TESAmmo* TESObjectWEAP::GetAmmo() {
-	if (!ammo.ammo) return NULL;
-	if IS_ID(ammo.ammo, BGSListForm)
-		return (TESAmmo*)((BGSListForm*)ammo.ammo)->GetFormList()->GetItem();
-	return (TESAmmo*)ammo.ammo;
+#ifdef GAME
+	return ammo.GetAmmoHelper();
+#else
+	return nullptr;
+#endif
 }
 
 TESForm* TESObjectWEAP::GetAmmoInInventory()
 {
-	if (ammo.ammo) {
-		if (IS_TYPE(ammo.ammo, BGSListForm)) {
-			BGSListForm* ammoList = (BGSListForm*)ammo.ammo;
+	if (ammo.pAmmo) {
+		if (IS_TYPE(ammo.pAmmo, BGSListForm)) {
+			BGSListForm* ammoList = (BGSListForm*)ammo.pAmmo;
 			ExtraContainerChanges* xChanges = PlayerCharacter::GetSingleton()->extraDataList.GetExtraData<ExtraContainerChanges>();
 			if (ammoList && xChanges && xChanges->pChanges) {
 				auto* pIter = ammoList->GetFormList();
@@ -245,7 +147,7 @@ TESForm* TESObjectWEAP::GetAmmoInInventory()
 					pIter = pIter->GetNext();
 
 					if (IS_TYPE(pForm, TESAmmo)) {
-						uint32_t count = ThisCall<uint32_t>(0x4C8F30, xChanges->pChanges, pForm);
+						uint32_t count = xChanges->pChanges->GetObjectCount(static_cast<TESAmmo*>(pForm));
 						if (count > 0) 
 							return pForm;
 					}
@@ -433,25 +335,4 @@ void TESObjectCELL::CellRefLockEnter() {
 // GAME - 0x541AE0
 void TESObjectCELL::CellRefLockLeave() {
 	ThisCall(0x541AE0, this);
-}
-
-bool TESContainer::ContainerCanHoldType(uint8_t aucFormType) {
-	return CdeclCall<bool>(0x481F30, aucFormType);
-}
-
-bool TESContainer::ContainerCanHoldForm(const TESForm* apForm) {
-	if (!apForm)
-		return false;
-
-	if (apForm->IsReference()) {
-		const TESObjectREFR* pRef = static_cast<const TESObjectREFR*>(apForm);
-		return ContainerCanHoldForm(pRef->baseForm);
-	}
-	else if (apForm->GetFormType() == FORM_TYPE::TESObjectLIGH) {
-		const TESObjectLIGH* pLight = static_cast<const TESObjectLIGH*>(apForm);
-		return pLight->GetCanCarry();
-	}
-	else {
-		return ContainerCanHoldType(apForm->GetFormType());
-	}
 }

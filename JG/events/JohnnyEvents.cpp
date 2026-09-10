@@ -604,7 +604,7 @@ namespace JohnnyEvents {
 			float fNewVal = *reinterpret_cast<float*>(pEBP + 0x14);
 			ActorValueInfo* pInfo = CdeclCall<ActorValueInfo*>(kOnAVChangeDetour, aeActorValue);
 			if (pInfo)
-				Events::OnAVChange(pActor, aeActorValue, fOldVal, fNewVal, pInfo->onChangeCallback);
+				Events::OnAVChange(pActor, aeActorValue, fOldVal, fNewVal, pInfo->pModifiedCallback);
 			return pInfo;
 		}
 		STACK_FRAME_OPT_RESET
