@@ -7,7 +7,7 @@ namespace RSMBarberHook {
 	uintptr_t RSMDestructorOriginal = (uintptr_t)0x07AC530;
 
 	bool __fastcall hk_TESHair_IsPlayable(TESHair* ptr_hair) {
-		return (ptr_hair->IsPlayable()) && (haircutSetList.Find(ptr_hair->GetFormID()));
+		return (ptr_hair->GetPlayable()) && (haircutSetList.Find(ptr_hair->GetFormID()));
 
 	}
 

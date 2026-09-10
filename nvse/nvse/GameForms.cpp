@@ -4,12 +4,6 @@
 #include "GameObjects.h"
 #include "GameData.h"
 
-#if 1
-BGSDefaultObjectManager** g_defaultObjectManager = (BGSDefaultObjectManager**)0x011CA80C;
-#else
-BGSDefaultObjectManager** g_defaultObjectManager = (BGSDefaultObjectManager**)0x0;
-#endif
-
 TESForm* __fastcall GetTESForm(const TESForm* apForm) {
 	if (!apForm) 
 		return nullptr;
@@ -310,10 +304,6 @@ const char* EffectItemList::GetNthEIName(uint32_t whichEffect) const {
 		return "<no name>";
 }
 #endif
-
-BGSDefaultObjectManager* BGSDefaultObjectManager::GetSingleton() {
-	return *g_defaultObjectManager;
-}
 
 bool AlchemyItem::IsPoison() {
 	return magicItem.CanBePoison();

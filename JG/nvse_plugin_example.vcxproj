@@ -461,6 +461,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     </ClCompile>
     <ClCompile Include="internal\Game\Bethesda\AutoMemContext.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BaseExtraList.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSAddonNode.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSAmmoForm.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSBipedModelList.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSBodyPart.cpp" />
@@ -470,23 +471,31 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_GECK|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="internal\Game\Bethesda\BGSClipRoundsForm.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSDebris.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSDefaultObjectManager.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSDestructibleObjectForm.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSEncounterZone.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSEquipType.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSIdleCollection.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSImpactDataSet.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSListForm.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSLoadGameSubBuffer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseDebug_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_GECK|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="internal\Game\Bethesda\BGSMessage.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSMessageIcon.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSMusicType.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSNumericIDIndex.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseDebug_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_GECK|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="internal\Game\Bethesda\BGSOpenCloseForm.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSPerkEntry.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSPickupPutdownSounds.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSPlaceableWater.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSRepairItemList.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSSaveFormBuffer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
@@ -558,9 +567,12 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClCompile Include="internal\Game\Bethesda\TESContainer.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESDataHandler.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESEnchantableForm.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\TESEyes.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESFile.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESForm.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESFullName.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\TESGlobal.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\TESHair.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESHavokUtilities.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESHealthForm.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESImageSpaceModifiableForm.cpp" />
@@ -612,6 +624,9 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClCompile Include="internal\Game\Gamebryo\NiPoint4.cpp" />
     <ClCompile Include="internal\Game\Gamebryo\NiRenderer.cpp" />
     <ClCompile Include="internal\Game\Gamebryo\NiTransform.cpp" />
+    <ClCompile Include="internal\Game\Obsidian\TESAmmoEffect.cpp" />
+    <ClCompile Include="internal\Game\Obsidian\TESCaravanCard.cpp" />
+    <ClCompile Include="internal\Game\Obsidian\TESCaravanDeck.cpp" />
     <ClCompile Include="internal\Game\Obsidian\TESReputation.cpp" />
     <ClCompile Include="internal\JG\AddItemMessages.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
@@ -846,18 +861,25 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\AutoMemContext.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BaseExtraList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BaseFormComponent.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSAddonNode.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSAmmoForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSBipedModelList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSBodyPart.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSCameraShot.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSChangeFlags.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseDebug_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_GECK|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="internal\Game\Bethesda\BGSClipRoundsForm.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSDebris.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSDefaultObjectManager.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSDestructibleObjectForm.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSEncounterZone.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSEquipType.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSIdleCollection.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSIdleMarker.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSImpactDataSet.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSListForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSLoadFormBuffer.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
@@ -875,15 +897,20 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_GECK|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="internal\Game\Bethesda\BGSMenuIcon.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSMessage.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSMessageIcon.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSMusicType.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSNumericIDIndex.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseDebug_GECK|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_GECK|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="internal\Game\Bethesda\BGSOpenCloseForm.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSPerkEntry.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSPickupPutdownSounds.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSPlaceableWater.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSPreloadable.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSRadiationStage.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSRepairItemList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSSaveFormBuffer.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_GECK|Win32'">true</ExcludedFromBuild>
@@ -917,6 +944,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     </ClInclude>
     <ClInclude Include="internal\Game\Bethesda\BGSTextureModel.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSTouchSpellForm.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSVoiceType.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BSArchive.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BSCriticalSection.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BSCullingProcess.hpp" />
@@ -970,6 +998,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\EffectItem.hpp" />
     <ClInclude Include="internal\Game\Bethesda\EffectItemList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\EffectSetting.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\EnchantmentItem.hpp" />
     <ClInclude Include="internal\Game\Bethesda\ExtraActivateRef.hpp" />
     <ClInclude Include="internal\Game\Bethesda\ExtraCellAcousticSpace.hpp" />
     <ClInclude Include="internal\Game\Bethesda\ExtraCombatStyle.hpp" />
@@ -1004,6 +1033,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\IOTask.hpp" />
     <ClInclude Include="internal\Game\Bethesda\ItemChange.hpp" />
     <ClInclude Include="internal\Game\Bethesda\MagicItem.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\MagicItemForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\MagicSystem.hpp" />
     <ClInclude Include="internal\Game\Bethesda\MapMarkerData.hpp" />
     <ClInclude Include="internal\Game\Bethesda\MemoryContexts.hpp" />
@@ -1030,6 +1060,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\SettingCollectionList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\SettingCollectionMap.hpp" />
     <ClInclude Include="internal\Game\Bethesda\SettingT.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\SpellItem.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESActorBaseData.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESAIForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESAnimation.hpp" />
@@ -1044,13 +1075,19 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\TESDataHandler.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESDescription.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESEnchantableForm.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESEyes.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESFile.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESFullName.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESGlobal.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESHair.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESHavokUtilities.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESHealthForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESIcon.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESImageSpaceModifiableForm.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESKey.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESLevCharacter.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESLevCreature.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESLeveledList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESLevItem.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESMain.hpp" />
@@ -1074,7 +1111,9 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\TESObjectList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESObjectMISC.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESObjectSTAT.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESPackageData.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESParameters.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESPatrolPackageData.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESRaceForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESReactionForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESRegionData.hpp" />
@@ -1157,7 +1196,15 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Gamebryo\NiVisibleArray.hpp" />
     <ClInclude Include="internal\Game\Obsidian\AudioMarkerData.hpp" />
     <ClInclude Include="internal\Game\Obsidian\AudioMarkerInfo.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\BGSDehydrationStage.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\BGSHungerStage.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\BGSSleepDeprevationStage.hpp" />
     <ClInclude Include="internal\Game\Obsidian\ExtraAudioMarker.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\TESAmmoEffect.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\TESCaravanCard.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\TESCaravanDeck.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\TESCaravanMoney.hpp" />
+    <ClInclude Include="internal\Game\Obsidian\TESCasinoChips.hpp" />
     <ClInclude Include="internal\Game\Obsidian\TESObjectIMOD.hpp" />
     <ClInclude Include="internal\Game\Obsidian\TESReputation.hpp" />
     <ClInclude Include="internal\havok.h" />

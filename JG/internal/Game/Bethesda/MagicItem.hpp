@@ -30,7 +30,13 @@ public:
 	virtual void					Endian();
 	virtual void					LoadMagicItemChunk(TESFile* apFile, uint32_t aeChunkID);
 
+#ifdef GAME
 	uint32_t GetMagicItemFormID() const;
+#endif
 };
 
+#ifdef GAME
 ASSERT_SIZE(MagicItem, 0x1C);
+#else
+ASSERT_SIZE(MagicItem, 0xFC);
+#endif

@@ -561,9 +561,9 @@ bool Cmd_GetIdleMarkerAnimations_Execute(COMMAND_ARGS) {
 	*result = 0;
 	BGSIdleMarker* marker;
 	NVSEArrayVar* idleArr = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->idleCollection.GetIdleCount() > 0) {
-		for (int i = 0; i < marker->idleCollection.GetIdleCount(); i++) {
-			g_arrInterface->AppendElement(idleArr, NVSEArrayElement(marker->idleCollection.ppIdles[i]));
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->GetIdleCount() > 0) {
+		for (int i = 0; i < marker->GetIdleCount(); i++) {
+			g_arrInterface->AppendElement(idleArr, NVSEArrayElement(marker->ppIdles[i]));
 		}
 	}
 	g_arrInterface->AssignCommandResult(idleArr, result);
@@ -575,8 +575,8 @@ bool Cmd_SetIdleMarkerAnimation_Execute(COMMAND_ARGS) {
 	BGSIdleMarker* marker = nullptr;
 	TESIdleForm* newAnim = nullptr;
 	uint32_t animId;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &animId, &newAnim) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->idleCollection.GetIdleCount() > animId) {
-		marker->idleCollection.ppIdles[animId] = newAnim;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &animId, &newAnim) && marker && IS_TYPE(marker, BGSIdleMarker) && marker->GetIdleCount() > animId) {
+		marker->ppIdles[animId] = newAnim;
 		*result = 1;
 	}
 	return true;
@@ -598,10 +598,10 @@ bool Cmd_SetIdleMarkerAnimations_Execute(COMMAND_ARGS) {
 		for (uint32_t i = 0; i < size; i++) {
 			idleList[i] = (TESIdleForm*)elements[i].GetTESForm();
 		}
-		if (marker->idleCollection.ppIdles) 
-			BSMemory::free(marker->idleCollection.ppIdles);
-		marker->idleCollection.ppIdles = idleList;
-		marker->idleCollection.ucIdleCount = size;
+		if (marker->ppIdles) 
+			BSMemory::free(marker->ppIdles);
+		marker->ppIdles = idleList;
+		marker->ucIdleCount = size;
 		*result = 1;
 	}
 
@@ -615,13 +615,13 @@ bool Cmd_GetIdleMarkerTraitNumeric_Execute(COMMAND_ARGS) {
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &traitID) && marker && IS_TYPE(marker, BGSIdleMarker)) {
 		switch (traitID) {
 		case 1:
-			*result = marker->idleCollection.ucIdleFlags.Get();
+			*result = marker->ucIdleFlags.Get();
 			break;
 		case 2:
-			*result = marker->idleCollection.fTimerCheckForIdle;
+			*result = marker->fTimerCheckForIdle;
 			break;
 		case 3:
-			*result = marker->idleCollection.GetIdleCount();
+			*result = marker->GetIdleCount();
 			break;
 		default:
 			return true;
@@ -639,10 +639,10 @@ bool Cmd_SetIdleMarkerTraitNumeric_Execute(COMMAND_ARGS) {
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &marker, &traitID, &newVal) && marker && IS_TYPE(marker, BGSIdleMarker)) {
 		switch (traitID) {
 		case 1:
-			marker->idleCollection.ucIdleFlags = newVal;
+			marker->ucIdleFlags = newVal;
 			break;
 		case 2:
-			marker->idleCollection.fTimerCheckForIdle = newVal;
+			marker->fTimerCheckForIdle = newVal;
 			break;
 		default:
 			return true;
@@ -1078,9 +1078,9 @@ bool Cmd_GetTalkingActivatorActor_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetActorEffectType_Execute(COMMAND_ARGS) {
 	*result = 0;
-	SpellItem* effect = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &effect) && effect && IS_TYPE(effect, SpellItem)) {
-		*result = effect->type;
+	SpellItem* pSpell = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pSpell) && pSpell && IS_TYPE(pSpell, SpellItem)) {
+		*result = pSpell->GetSpellType();
 		if (IsConsoleMode()) Console_Print("GetActorEffectType >> %.2f", *result);
 	}
 	else {
@@ -1589,22 +1589,21 @@ bool Cmd_GetPrimitiveType_Execute(COMMAND_ARGS) {
 }
 
 bool Cmd_GetMusicTypePath_Execute(COMMAND_ARGS) {
-	BGSMusicType* mtype = nullptr;
-	const char* path = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &mtype) && mtype && IS_TYPE(mtype, BGSMusicType)) {
-		path = mtype->soundFile.GetSoundFile();
-		g_strInterface->Assign(PASS_COMMAND_ARGS, path);
-		if (IsConsoleMode()) {
-			Console_Print("GetMusicTypePath >> %s", path);
-		}
+	BGSMusicType* pMusic = nullptr;
+	const char* pPath = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pMusic) && pMusic && IS_TYPE(pMusic, BGSMusicType)) {
+		pPath = pMusic->GetSoundFile();
+		if (IsConsoleMode())
+			Console_Print("GetMusicTypePath >> %s", pPath);
 	}
+	g_strInterface->Assign(PASS_COMMAND_ARGS, pPath);
 	return true;
 }
 
 bool Cmd_GetMusicTypeDB_Execute(COMMAND_ARGS) {
-	BGSMusicType* mtype = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &mtype) && mtype && IS_TYPE(mtype, BGSMusicType)) {
-		*result = mtype->dB;
+	BGSMusicType* pMusic = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pMusic) && pMusic && IS_TYPE(pMusic, BGSMusicType)) {
+		*result = pMusic->fAttenuation;
 		if (IsConsoleMode())
 			Console_Print("GetMusicTypeDB >> %f", *result);
 	}
@@ -1612,20 +1611,20 @@ bool Cmd_GetMusicTypeDB_Execute(COMMAND_ARGS) {
 }
 
 bool Cmd_SetMusicTypeDB_Execute(COMMAND_ARGS) {
-	BGSMusicType* mtype = nullptr;
-	float newVal = 0;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &mtype, &newVal) && mtype && IS_TYPE(mtype, BGSMusicType)) {
-		mtype->dB = newVal;
+	BGSMusicType* pMusic = nullptr;
+	float fAttenuation = 0;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pMusic, &fAttenuation) && pMusic && IS_TYPE(pMusic, BGSMusicType)) {
+		pMusic->fAttenuation = fAttenuation;
 		*result = 1;
 	}
 	return true;
 }
 
 bool Cmd_SetMusicTypePath_Execute(COMMAND_ARGS) {
-	BGSMusicType* mtype = nullptr;
-	char newPath[MAX_PATH] = {};
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &mtype, &newPath) && mtype && IS_TYPE(mtype, BGSMusicType)) {
-		mtype->soundFile.SetSoundFile(newPath);
+	BGSMusicType* pMusic = nullptr;
+	char cPath[MAX_PATH] = {};
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pMusic, &cPath) && pMusic && IS_TYPE(pMusic, BGSMusicType)) {
+		pMusic->SetSoundFile(cPath);
 		*result = 1;
 	}
 	return true;
@@ -1812,7 +1811,7 @@ bool Cmd_IsCellExpired_Execute(COMMAND_ARGS) {
 			*result = 1;
 		}
 		else {
-			const float daysPassed = GameTimeGlobals::GetSingleton()->daysPassed ? GameTimeGlobals::GetSingleton()->daysPassed->data : 1.f;
+			const float daysPassed = GameTimeGlobals::GetSingleton()->daysPassed ? GameTimeGlobals::GetSingleton()->daysPassed->GetValue() : 1.f;
 			gameHoursPassed = floor(daysPassed * 24.0);
 			*result = ((gameHoursPassed - detachTime) >= iHoursToRespawnCell);
 		}
@@ -2846,7 +2845,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		{
 			const EnchantmentItem* pItem = TESEnchantableForm::GetFormEnchanting(pForm);
 			if (pItem)
-				pItem->magicItem.GetEffectsString(cEffects, sizeof(cEffects));
+				pItem->GetEffectsString(cEffects, sizeof(cEffects));
 		}
 	}
 

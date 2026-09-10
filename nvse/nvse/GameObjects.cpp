@@ -15,7 +15,7 @@ TESForm* TESObjectREFR::GetBaseForm()
 		baseform = this->baseForm;
 		if (baseform->GetCompileIndex() == 0xFF) {
 			if (IS_TYPE(baseform, BGSPlaceableWater))
-				return ((BGSPlaceableWater*)baseform)->water;
+				return ((BGSPlaceableWater*)baseform)->kData.pWaterType;
 
 			ExtraLeveledCreature* pLevCrea = extraDataList.GetExtraData<ExtraLeveledCreature>();
 			if (pLevCrea && pLevCrea->pOriginalBase)
