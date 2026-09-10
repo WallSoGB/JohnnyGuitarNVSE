@@ -233,7 +233,7 @@ SPEC_NOINLINE bool Cmd_IsRadioRefPlaying_Eval(COMMAND_ARGS_EVAL) {
 	*result = 0;
 	if (thisObj && thisObj->baseForm && IS_TYPE(thisObj->baseForm, TESObjectACTI)) {
 		TESObjectACTI* baseActi = static_cast<TESObjectACTI*>(thisObj->baseForm);
-		if (baseActi->radioStation) {
+		if (baseActi->GetRadioStation()) {
 			*result = (CdeclCall<void*>(0x0832930, thisObj) != nullptr);
 		}
 	}
@@ -248,7 +248,7 @@ bool Cmd_TuneRadioRef_Execute(COMMAND_ARGS) {
 	BGSTalkingActivator* actiDst = nullptr;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &actiDst) && thisObj && thisObj->baseForm && IS_TYPE(thisObj->baseForm, TESObjectACTI)) {
 		if (TESObjectACTI* actiBase = (TESObjectACTI*)thisObj->baseForm) {
-			BGSTalkingActivator* originalTK = actiBase->radioStation;
+			BGSTalkingActivator* originalTK = actiBase->GetRadioStation();
 			if (actiDst == nullptr) {
 				actiDst = originalTK;
 			}
@@ -256,9 +256,9 @@ bool Cmd_TuneRadioRef_Execute(COMMAND_ARGS) {
 				auto activateState = CdeclCall<unsigned int>(0x047B250, thisObj);
 				if ((CdeclCall<void*>(0x0832930, thisObj) != nullptr) || (activateState == 1) || (activateState == 2)) { //the exact same logic the game uses
 					CdeclCall<void*>(0x08325B0, thisObj, 0);
-					actiBase->radioStation = actiDst;
+					actiBase->SetRadioStation(actiDst);
 					CdeclCall<void*>(0x08325B0, thisObj, 1);
-					actiBase->radioStation = originalTK;
+					actiBase->SetRadioStation(originalTK);
 				}
 			}
 		}
@@ -654,13 +654,13 @@ bool Cmd_SetIdleMarkerTraitNumeric_Execute(COMMAND_ARGS) {
 TESModelTextureSwap* GetArmorModel(TESObjectARMO* armor, uint32_t id) {
 	switch (id) {
 	case 1:
-		return &armor->bipedModel.kBipedModels[SEX::MALE];
+		return &armor->kBipedModels[SEX::MALE];
 	case 2:
-		return &armor->bipedModel.kBipedModels[SEX::FEMALE];
+		return &armor->kBipedModels[SEX::FEMALE];
 	case 3:
-		return &armor->bipedModel.kWorldModels[SEX::MALE];
+		return &armor->kWorldModels[SEX::MALE];
 	case 4:
-		return &armor->bipedModel.kWorldModels[SEX::FEMALE];
+		return &armor->kWorldModels[SEX::FEMALE];
 	default:
 		return nullptr;
 	}
@@ -1348,20 +1348,23 @@ bool Cmd_GetCreatureCombatSkill_Execute(COMMAND_ARGS) {
 }
 
 bool Cmd_SetContainerSound_Execute(COMMAND_ARGS) {
-	int whichSound = -1;
-	TESObjectCONT* container = nullptr;
-	TESSound* newSound = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &container, &whichSound, &newSound) && container && IS_TYPE(container, TESObjectCONT) && newSound && IS_TYPE(newSound, TESSound)) {
+	int32_t iSoundType = -1;
+	TESObjectCONT* pContainer = nullptr;
+	TESSound* pSound = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pContainer, &iSoundType, &pSound) && pContainer && IS_ID(pContainer, TESObjectCONT)) {
+		if (pSound && !IS_ID(pSound, TESSound))
+			return true;
+
 		*result = 1;
-		switch (whichSound) {
+		switch (iSoundType) {
 		case 0:
-			container->openSound = newSound;
+			pContainer->SetOpenSound(pSound);
 			break;
 		case 1:
-			container->closeSound = newSound;
+			pContainer->SetCloseSound(pSound);
 			break;
 		case 2:
-			container->randomLoopingSound = newSound;
+			pContainer->SetLoopSound(pSound);
 			break;
 		default:
 			*result = 0;
@@ -1373,20 +1376,24 @@ bool Cmd_SetContainerSound_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetContainerSound_Execute(COMMAND_ARGS) {
 	*result = 0;
-	int whichSound = -1;
-	TESObjectCONT* container = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &container, &whichSound) && container && IS_TYPE(container, TESObjectCONT)) {
-		switch (whichSound) {
+	int32_t iSoundType = -1;
+	TESObjectCONT* pContainer = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pContainer, &iSoundType) && pContainer && IS_ID(pContainer, TESObjectCONT)) {
+		TESSound* pSound = nullptr;
+		switch (iSoundType) {
 		case 0:
-			if (container->openSound) *(uint32_t*)result = container->openSound->GetFormID();
+			pSound = pContainer->GetOpenSound();
 			break;
 		case 1:
-			if (container->closeSound) *(uint32_t*)result = container->closeSound->GetFormID();
+			pSound = pContainer->GetCloseSound();
 			break;
 		case 2:
-			if (container->randomLoopingSound) *(uint32_t*)result = container->randomLoopingSound->GetFormID();
+			pSound = pContainer->GetLoopSound();
 			break;
 		}
+
+		if (pSound)
+			*reinterpret_cast<uint32_t*>(result) = pSound->GetFormID();
 	}
 	return true;
 }
@@ -1507,29 +1514,35 @@ bool Cmd_GetRaceBodyModelPath_Execute(COMMAND_ARGS) {
 }
 
 bool Cmd_GetFacegenModelFlag_Execute(COMMAND_ARGS) {
-	TESObjectARMO* armor = nullptr;
-	uint32_t isFemale, flagID;
 	*result = 0;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &armor, &flagID, &isFemale) && armor && IS_TYPE(armor, TESObjectARMO)) {
-		if (isFemale <= 1 && flagID <= 3) {
-			*result = armor->bipedModel.kBipedModels[isFemale].ucFlags.GetBit(flagID);
-			if (IsConsoleMode()) {
-				Console_Print("GetFacegenModelFlag %i %i >> %.f", flagID, isFemale, *result);
-			}
+	TESForm* pForm = nullptr;
+	uint32_t uiBit = 0;
+	BOOL bFemale = FALSE;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pForm, &uiBit, &bFemale) && pForm && uiBit < 8) {
+		TESBipedModelForm* pBipedModel = TESBipedModelForm::GetFormAsBipedModel(pForm);
+		if (pBipedModel) {
+			const SEX eSex = bFemale ? SEX::FEMALE : SEX::MALE;
+			*result = pBipedModel->kBipedModels[eSex].ucFlags.GetBit(uiBit);
+			if (IsConsoleMode())
+				Console_Print("GetFacegenModelFlag %i %i >> %.f", uiBit, bFemale, *result);
 		}
 	}
 	return true;
 }
 
 bool Cmd_SetFacegenModelFlag_Execute(COMMAND_ARGS) {
-	TESObjectARMO* armor = nullptr;
-	uint32_t isFemale;
-	uint32_t flagID;
-	BOOL bEnable;
 	*result = 0;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &armor, &flagID, &isFemale, &bEnable) && armor && IS_TYPE(armor, TESObjectARMO) && flagID <= 3) {
-		armor->SetFacegenFlag(1 << flagID, isFemale, bEnable);
-		*result = 1;
+	TESForm* pForm = nullptr;
+	uint32_t uiBit = 0;
+	BOOL bFemale = FALSE;
+	BOOL bEnable = FALSE;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pForm, &uiBit, &bFemale, &bEnable) && pForm && uiBit < 8) {
+		TESBipedModelForm* pBipedModel = TESBipedModelForm::GetFormAsBipedModel(pForm);
+		if (pBipedModel) {
+			const SEX eSex = bFemale ? SEX::FEMALE : SEX::MALE;
+			pBipedModel->kBipedModels[eSex].ucFlags.SetBit(uiBit, bEnable);
+			*result = 1;
+		}
 	}
 	return true;
 }
@@ -2806,7 +2819,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		case FORM_TYPE::TESObjectIMOD:
 		{
 			const TESObjectIMOD* pItemMod = static_cast<TESObjectIMOD*>(pForm);
-			const char* pModDescription = pItemMod->description.GetDescription(pForm, 'CSED');
+			const char* pModDescription = pItemMod->GetDescription(pForm, 'CSED');
 			if (pModDescription)
 				strcpy_s(cEffects, sizeof(cEffects), pModDescription);
 		}

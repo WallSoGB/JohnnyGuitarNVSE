@@ -62,8 +62,18 @@
 #include "Bethesda/EffectSetting.hpp"
 #include "Bethesda/TESBoundAnimObject.hpp"
 #include "Bethesda/TESLevItem.hpp"
+#include "Bethesda/TESObjectACTI.hpp"
+#include "Bethesda/TESObjectANIO.hpp"
+#include "Bethesda/TESObjectARMA.hpp"
+#include "Bethesda/TESObjectBOOK.hpp"
+#include "Bethesda/TESObjectCONT.hpp"
+#include "Bethesda/TESObjectDOOR.hpp"
 #include "Bethesda/TESObjectLAND.hpp"
+#include "Bethesda/TESObjectLIGH.hpp"
+#include "Bethesda/TESObjectMISC.hpp"
+#include "Bethesda/TESObjectSTAT.hpp"
 #include "Obsidian/TESReputation.hpp"
+#include "Obsidian/TESObjectIMOD.hpp"
 
 class PathingLocation;
 class PathingCoverLocation;
@@ -331,7 +341,6 @@ class BGSProjectile;
 class BGSImpactDataSet;
 class FaceGenUndo;
 class TESCombatStyle;
-class TESObjectLAND;
 class TESWorldSpace;
 class BGSLightingTemplate;
 class TESImageSpace;
@@ -340,10 +349,7 @@ class Script;
 class TESObjectREFR;
 class TESChildCell;
 class ScriptLocals;
-class TESObjectLIGH;
 class TESEffectShader;
-class TESObjectIMOD;
-class TESObjectMISC;
 class TESPackage;
 class Actor;
 class TESNPC;
@@ -590,7 +596,7 @@ public:
 	uint32_t				speechChallenge;	// 44
 	TESQuest*			quest;				// 48
 	uint32_t				modInfoFileOffset;	// 4C	during LoadForm
-#if JIP_CHANGES
+#if USE_MODDED_CHANGES
 	TESTopic*				pParentTopic;
 #endif
 
@@ -1202,32 +1208,6 @@ static_assert(sizeof(SpellItem) == 0x44);
 
 class BGSTalkingActivator;
 
-// 90
-class TESObjectACTI : public TESBoundAnimObject {
-public:
-	TESObjectACTI();
-	~TESObjectACTI();
-
-	TESFullName					fullName;			// 30
-	TESModelTextureSwap			modelTextureSwap;	// 3C
-	TESScriptableForm			scriptable;			// 5C
-	BGSDestructibleObjectForm	destructible;		// 68
-	BGSOpenCloseForm			openClose;			// 70
-
-	TESSound*				loopingSound;		// 74
-	TESSound*				activationSound;	// 78
-	TESSound*				radioTemplate;		// 7C
-	TESWaterForm*			waterType;			// 80
-	BGSTalkingActivator*	radioStation;		// 84
-	BSString				activationPrompt;	// 88
-};
-
-#ifdef GAME
-static_assert(sizeof(TESObjectACTI) == 0x90);
-#else
-static_assert(sizeof(TESObjectACTI) == 0xC4);
-#endif
-
 // 98
 class BGSTalkingActivator : public TESObjectACTI {
 public:
@@ -1283,234 +1263,11 @@ public:
 	BGSNote*			password;		// 0A0	PNAM
 	TermData			data;			// 0A4	DNAM
 };
-// 190
-class TESObjectARMO : public TESBoundObject {
-public:
-	TESObjectARMO();
-	~TESObjectARMO();
-
-	struct MovementSound {
-		TESSound* sound;
-		uint8_t			unk04[3];
-		uint8_t			chance;
-		uint32_t			type;
-		//				0x11	Walk
-		//				0x12	Sneak
-		//				0x13	Run
-		//				0x14	Sneak (Armor)
-		//				0x15	Run (Armor)
-		//				0x16	Walk (Armor)
-	};
-
-	TESFullName					fullName;				// 030
-	TESScriptableForm			scriptable;				// 03C
-	TESEnchantableForm			enchantable;			// 048
-	TESValueForm				value;					// 058
-	TESWeightForm				weight;					// 060
-	TESHealthForm				health;					// 068
-	TESBipedModelForm			bipedModel;				// 070
-	BGSDestructibleObjectForm	destuctible;			// 14C
-	BGSEquipType				equipType;				// 154
-	BGSRepairItemList			repairItemList;			// 15C
-	BGSBipedModelList			bipedModelList;			// 164
-	BGSPickupPutdownSounds		pickupPutdownSounds;	// 16C
-
-	uint16_t						armorRating;			// 178
-	uint16_t						modifiesVoice;			// 17A
-	float						damageThreshold;		// 17C
-	uint32_t						armorFlags;				// 180
-	uint32_t						unk184;					// 184
-	union												// 188
-	{
-		TESObjectARMO* audioTemplate;
-		tList<MovementSound>* movementSounds;
-	};
-	uint8_t						overrideSounds;			// 18C
-	uint8_t						pad18D[3];				// 18D
-	void SetFacegenFlag(uint32_t pFlag, uint32_t bFemale, bool bEnable) {
-		bipedModel.kBipedModels[bFemale].ucFlags.Set(pFlag, bEnable);
-	}
-};
-#ifdef GAME
-static_assert(sizeof(TESObjectARMO) == 0x190);
-#else
-static_assert(sizeof(TESObjectARMO) == 0x240);
-#endif
-
-// C4
-class TESObjectBOOK : public TESBoundObject {
-public:
-	TESObjectBOOK();
-	~TESObjectBOOK();
-
-	TESFullName					fullName;		// 30
-	TESModelTextureSwap			model;			// 3C
-	TESIcon						icon;			// 5C
-	TESScriptableForm			scriptable;		// 68
-	TESEnchantableForm			enchantable;	// 74
-	TESValueForm				value;			// 84
-	TESWeightForm				weight;			// 8C
-	TESDescription				description;	// 94
-	BGSDestructibleObjectForm	destuctible;	// 9C
-	BGSMessageIcon				messageIcon;	// A4
-	BGSPickupPutdownSounds		sounds;			// B4
-	uint8_t						flags;			// C0
-	uint8_t						skillCode;		// C1
-	uint8_t						byteC2;			// C2
-	uint8_t						byteC3;			// C3
-};
-#ifdef GAME
-static_assert(sizeof(TESObjectBOOK) == 0xC4);
-#else
-static_assert(sizeof(TESObjectBOOK) == 0x120);
-#endif
-
-// 154
-class TESObjectCLOT : public TESBoundObject {
-public:
-	TESObjectCLOT();
-	~TESObjectCLOT();
-
-	// bases
-	TESFullName					fullName;		// 030
-	TESScriptableForm			scriptable;		// 03C
-	TESEnchantableForm			enchantable;	// 048
-	TESValueForm				value;			// 058
-	TESWeightForm				weight;			// 060
-	TESBipedModelForm			bipedModel;		// 068
-	BGSDestructibleObjectForm	destuctible;	// 144
-	BGSEquipType				equipType;		// 14C
-	// unk data
-};
-
-// 9C
-class TESObjectCONT : public TESBoundAnimObject {
-public:
-	TESObjectCONT();
-	~TESObjectCONT();
-
-	TESContainer                container;				// 30
-	TESFullName					name;					// 3C
-	TESModelTextureSwap			model;					// 48
-	TESScriptableForm			scriptForm;				// 68
-	TESWeightForm				weightForm;				// 74
-	BGSDestructibleObjectForm	destructForm;			// 7C
-	BGSOpenCloseForm			openCloseForm;			// 84
-
-	uint32_t						unk88;					// 88
-	TESSound* openSound;				// 8C
-	TESSound* closeSound;			// 90
-	TESSound* randomLoopingSound;	// 94
-	uint8_t						flags;					// 98
-	uint8_t						pad99[3];				// 99
-};
-
-// 90
-class TESObjectDOOR : public TESBoundAnimObject {
-public:
-	TESObjectDOOR();
-	~TESObjectDOOR();
-
-	TESFullName					name;					// 30
-	TESModelTextureSwap			model;					// 3C
-	TESScriptableForm			scriptForm;				// 5C
-	BGSDestructibleObjectForm	destructForm;			// 68
-	BGSOpenCloseForm			openCloseForm;			// 70
-
-	uint32_t						unk74;					// 74
-	TESSound* openSound;				// 78
-	TESSound* closeSound;			// 7C
-	TESSound* randomLoopingSound;	// 80
-	uint32_t						unk84;					// 84
-	tList<void>					list88;					// 88
-};
 
 // IngredientItem (A4)
 class IngredientItem;
 
 class NiPointLight;
-
-// TESObjectLIGH (C8)
-class TESObjectLIGH : public TESBoundAnimObject {
-public:
-	TESObjectLIGH();
-	~TESObjectLIGH();
-
-	enum {
-		kFlag_Dynamic = 1,
-		kFlag_CanBeCarried = 2,
-		kFlag_Negative = 4,
-		kFlag_Flicker = 8,
-		kFlag_Unused = 16,
-		kFlag_OffByDefault = 32,
-		kFlag_FlickerSlow = 64,
-		kFlag_Pulse = 128,
-		kFlag_PulseSlow = 256,
-		kFlag_SpotLight = 512,
-		kFlag_SpotShadow = 1024,
-	};
-
-	TESFullName					fullName;		// 030
-	TESModelTextureSwap			modelSwap;		// 03C
-	TESIcon						icon;			// 05C
-	BGSMessageIcon				messageIcon;	// 068
-	TESScriptableForm			scriptable;		// 078
-	TESWeightForm				weight;			// 084
-	TESValueForm				value;			// 08C
-	BGSDestructibleObjectForm	destructible;	// 094
-
-	int32_t						time;			// 09C
-	uint32_t						radius;			// 0A0
-	uint8_t						red;			// 0A4
-	uint8_t						green;			// 0A5
-	uint8_t						blue;			// 0A6
-	uint8_t						padA7;			// 0A7
-	Bitfield32					lightFlags;		// 0A8
-	float						falloffExp;		// 0AC
-	float						FOV;			// 0B0
-	float						fadeValue;		// 0B4
-	TESSound* sound;			// 0B8
-	uint32_t						padBC[3];		// 0BC
-
-	void SetFlag(uint32_t pFlag, bool bEnable) {
-		lightFlags.Set(pFlag, bEnable);
-	}
-
-	bool GetCanCarry() const {
-		return lightFlags.Get(kFlag_CanBeCarried);
-	}
-
-	NiPointLight* CreatePointLight(TESObjectREFR* targetRef, NiNode* targetNode, bool arg3);
-};
-#ifdef GAME
-static_assert(sizeof(TESObjectLIGH) == 0x0C8);
-#else
-static_assert(sizeof(TESObjectLIGH) == 0x11C);
-#endif
-
-// AC
-class TESObjectMISC : public TESBoundObject {
-public:
-	TESObjectMISC();
-	~TESObjectMISC();
-
-	TESFullName					fullName;		// 30
-	TESModelTextureSwap			modelSwap;		// 3C
-	TESIcon						icon;			// 5C
-	TESScriptableForm			scriptable;		// 68
-	TESValueForm				value;			// 74
-	TESWeightForm				weight;			// 7C
-	BGSDestructibleObjectForm	destructible;	// 84
-	BGSMessageIcon				messageIcon;	// 8C
-	BGSPickupPutdownSounds		pickupPutdown;	// 9C
-
-	uint32_t						unkA8;			// A8
-};
-#ifdef GAME
-static_assert(sizeof(TESObjectMISC) == 0xAC);
-#else
-static_assert(sizeof(TESObjectMISC) == 0x100);
-#endif
 
 // 9C
 class TESCasinoChips : public TESBoundObject {
@@ -1555,16 +1312,6 @@ static_assert(sizeof(TESCaravanMoney) == 0xCC);
 static_assert(sizeof(TESCaravanMoney) == 0x140);
 #endif
 
-// 58
-class TESObjectSTAT : public TESBoundObject {
-public:
-	TESObjectSTAT();
-	~TESObjectSTAT();
-
-	TESModelTextureSwap		model;		// 30
-	uint32_t					unk50[2];	// 50
-};
-
 // BGSStaticCollection (50)
 class BGSStaticCollection;
 
@@ -1590,24 +1337,6 @@ class TESFlora;
 
 // TESFurniture (88)
 class TESFurniture;
-
-class TESObjectIMOD : public TESBoundObject {
-public:
-	TESObjectIMOD();
-	~TESObjectIMOD();
-
-	// bases
-	TESFullName					name;				// 030
-	TESModelTextureSwap			model;				// 03C
-	TESIcon						icon;				// 05C
-	TESScriptableForm			scriptForm;			// 068
-	TESDescription				description;		// 074
-	TESValueForm				value;				// 07C
-	TESWeightForm				weight;				// 084
-	BGSDestructibleObjectForm	destructible;		// 08C
-	BGSMessageIcon				messageIcon;		// 094
-	BGSPickupPutdownSounds		pickupPutdownSounds;// 0A4
-};
 
 // 388
 class TESObjectWEAP : public TESBoundObject {
@@ -3802,16 +3531,6 @@ public:
 // TESLevSpell (44)
 class TESLevSpell;
 
-// TESObjectANIO (3C)
-class TESObjectANIO : public TESForm {
-public:
-	TESObjectANIO();
-	~TESObjectANIO();
-
-	TESModelTextureSwap	modelSwap;		// 18
-	TESIdleForm* idleForm;		// 38
-};
-
 // 194
 class TESWaterForm : public TESForm {
 public:
@@ -4587,19 +4306,6 @@ public:
 static_assert(sizeof(BGSImpactDataSet) == 0x4C);
 #else
 static_assert(sizeof(BGSImpactDataSet) == 0x60);
-#endif
-
-// 190
-class TESObjectARMA : public TESObjectARMO {
-public:
-	TESObjectARMA();
-	~TESObjectARMA();
-};
-
-#ifdef GAME
-static_assert(sizeof(TESObjectARMA) == 0x190);
-#else
-static_assert(sizeof(TESObjectARMA) == 0x240);
 #endif
 
 // BGSEncounterZone (30)
