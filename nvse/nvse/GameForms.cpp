@@ -316,15 +316,7 @@ BGSDefaultObjectManager* BGSDefaultObjectManager::GetSingleton() {
 }
 
 bool AlchemyItem::IsPoison() {
-	EffectItem* effItem;
-	EffectSetting* effSetting = NULL;
-	BSSimpleList<EffectItem*>* iter = magicItem.list.GetHead();
-	do {
-		if (!(effItem = iter->GetItem())) continue;
-		effSetting = effItem->setting;
-		if (effSetting && !(effSetting->effectFlags & 4)) return false;
-	} while (iter = iter->GetNext());
-	return effSetting != NULL;
+	return magicItem.CanBePoison();
 }
 
 // GAME - 0x541AC0

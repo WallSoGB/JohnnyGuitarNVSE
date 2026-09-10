@@ -542,10 +542,16 @@ bool Cmd_GetPointInNavMesh_Execute(COMMAND_ARGS) {
 
 
 
-bool __fastcall ValidTempEffect(EffectItem* effectItem) {
-	if (!effectItem || (effectItem->duration <= 0) || !effectItem->setting) return false;
-	uint8_t archtype = effectItem->setting->archtype;
-	return !archtype || ((archtype == 1) && (effectItem->setting->effectFlags & 0x2000)) || ((archtype > 10) && (archtype < 14)) || (archtype == 24) || (archtype > 33);
+bool __fastcall ValidTempEffect(const EffectItem* apEffectItem) {
+	if (!apEffectItem || (apEffectItem->GetDuration() <= 0) || !apEffectItem->GetEffectSetting())
+		return false;
+
+	const auto eArchetype = apEffectItem->GetEffectSetting()->GetEffectArchetype();
+	return !eArchetype == EffectArchetypes::Type::VALUE_MODIFIER
+		|| (eArchetype == EffectArchetypes::Type::SCRIPT && apEffectItem->GetEffectSetting()->GetFlags().bDisplayEffectName)
+		|| (eArchetype >= EffectArchetypes::Type::INVISIBILITY && eArchetype <= EffectArchetypes::Type::DARKNESS)
+		|| (eArchetype == EffectArchetypes::Type::PARALYSIS)
+		|| (eArchetype >= EffectArchetypes::Type::CONCUSSION);
 }
 
 
@@ -628,7 +634,7 @@ bool Cmd_RewardKarmaAlt_Execute(COMMAND_ARGS) {
 	*result = 0;
 	int delta = 0;
 	ExtractArgsEx(EXTRACT_ARGS_EX, &delta);
-	int karmaBefore = PlayerCharacter::GetSingleton()->avOwner.GetActorValueI(kAVCode_Karma);
+	int karmaBefore = PlayerCharacter::GetSingleton()->avOwner.GetActorValueI(ActorValue::Index::KARMA);
 	int ikarmaMax = GameSettingCollection::iKarmaMax->Int();
 	int iKarmaMin = GameSettingCollection::iKarmaMin->Int();
 	if (delta >= 0 && ((delta + karmaBefore) > ikarmaMax)) {
@@ -638,7 +644,7 @@ bool Cmd_RewardKarmaAlt_Execute(COMMAND_ARGS) {
 		delta = iKarmaMin - karmaBefore;
 	}
 	if (delta != 0) {
-		PlayerCharacter::GetSingleton()->ModActorValue(kAVCode_Karma, delta, 0);
+		PlayerCharacter::GetSingleton()->ModActorValue(ActorValue::Index::KARMA, delta, 0);
 		*result = 1;
 	}
 	return true;
@@ -840,8 +846,8 @@ bool Cmd_GetCompassHostiles_Execute(COMMAND_ARGS) {
 		PlayerCharacter::CompassTarget* target = pIter->GetItem();
 		pIter = pIter->GetNext();
 		if (target->isHostile) {
-			if (skipInvisible > 0 && !hasImprovedDetection && (target->target->avOwner.GetActorValueI(kAVCode_Invisibility) > 0
-				|| target->target->avOwner.GetActorValueI(kAVCode_Chameleon) > 0)) {
+			if (skipInvisible > 0 && !hasImprovedDetection && (target->target->avOwner.GetActorValueI(ActorValue::Index::INVISIBILITY) > 0
+				|| target->target->avOwner.GetActorValueI(ActorValue::Index::CHAMELEON) > 0)) {
 				continue;
 			}
 			g_arrInterface->AppendElement(hostileArr, NVSEArrayElement(target->target));
@@ -1021,7 +1027,7 @@ bool Cmd_GetNearestCompassHostile_Execute(COMMAND_ARGS) {
 		PlayerCharacter::CompassTarget* target = pIter->GetItem();
 		pIter = pIter->GetNext();
 		if (target->isHostile) {
-			if (skipInvisible > 0 && (target->target->avOwner.GetActorValueI(kAVCode_Invisibility) > 0 || target->target->avOwner.GetActorValueI(kAVCode_Chameleon) > 0)) {
+			if (skipInvisible > 0 && (target->target->avOwner.GetActorValueI(ActorValue::Index::INVISIBILITY) > 0 || target->target->avOwner.GetActorValueI(ActorValue::Index::CHAMELEON) > 0)) {
 				continue;
 			}
 			auto distToPlayer = target->target->GetLocationOnReference().SqrDistance(playerPos);
@@ -1093,7 +1099,7 @@ bool Cmd_GetNearestCompassHostileDirection_Execute(COMMAND_ARGS) {
 		pIter = pIter->GetNext();
 
 		if (target->isHostile) {
-			if (skipInvisible > 0 && (target->target->avOwner.GetActorValueI(kAVCode_Invisibility) > 0 || target->target->avOwner.GetActorValueI(kAVCode_Chameleon) > 0)) {
+			if (skipInvisible > 0 && (target->target->avOwner.GetActorValueI(ActorValue::Index::INVISIBILITY) > 0 || target->target->avOwner.GetActorValueI(ActorValue::Index::CHAMELEON) > 0)) {
 				continue;
 			}
 			auto distToPlayer = target->target->GetLocationOnReference().SqrDistance(playerPos);
@@ -1205,8 +1211,8 @@ bool Cmd_ToggleNthPipboyLight_Execute(COMMAND_ARGS) {
 
 bool Cmd_UnsetAV_Execute(COMMAND_ARGS) {
 	*result = 0;
-	uint32_t avCode;
-	if (thisObj->IsActor() && ExtractArgsEx(EXTRACT_ARGS_EX, &avCode)) {
+	ActorValue::Index avCode = ActorValue::Index::NONE;
+	if (thisObj->IsActor() && ExtractArgsEx(EXTRACT_ARGS_EX, &avCode) && ScriptUtils::InRange(avCode)) {
 		Actor* actor = (Actor*)thisObj;
 		ActorValueOwner* avOwner = &actor->avOwner;
 		float oldVal = avOwner->GetActorValueF(avCode);
@@ -1232,9 +1238,9 @@ bool Cmd_UnsetAV_Execute(COMMAND_ARGS) {
 }
 
 bool Cmd_UnforceAV_Execute(COMMAND_ARGS) {
-	uint32_t avCode;
 	*result = 0;
-	if (thisObj->IsActor() && ExtractArgsEx(EXTRACT_ARGS_EX, &avCode)) {
+	ActorValue::Index avCode = ActorValue::Index::NONE;
+	if (thisObj->IsActor() && ExtractArgsEx(EXTRACT_ARGS_EX, &avCode) && ScriptUtils::InRange(avCode)) {
 		Actor* actor = (Actor*)thisObj;
 		ActorValueOwner* avOwner = &actor->avOwner;
 		float oldVal = avOwner->GetActorValueF(avCode);

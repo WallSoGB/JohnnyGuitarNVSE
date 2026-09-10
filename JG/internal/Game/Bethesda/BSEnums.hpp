@@ -1791,3 +1791,48 @@ struct _BSIntersectResult {
 	};
 };
 using BS_INTERSECT_RESULT = _BSIntersectResult::Result;
+
+struct _RegionDataType {
+	enum Type {
+		NONE		= 0,
+		GENERAL		= 1,
+		OBJECTS		= 2,
+		WEATHER		= 3,
+		MAP			= 4,
+		LANDSCAPE	= 5,
+		GRASS		= 6,
+		SOUND		= 7,
+		IMPOSTER	= 8,
+		COUNT		= 9,
+	};
+};
+using REGION_DATA_ID = _RegionDataType::Type;
+
+#pragma region Conditions
+
+struct _ConditionRunOn {
+	enum RunOn : uint32_t {
+		SUBJECT,
+		TARGET,
+		REFERENCE,
+		COMBAT_TARGET,
+		LINKED_REFERENCE,
+		COUNT,
+	};
+};
+using CONDITION_RUN_ON = _ConditionRunOn::RunOn;
+
+struct _ConditionComparison {
+	enum Comparison : uint32_t {
+		EQUAL,
+		NOT_EQUAL,
+		GREATER_THAN,
+		GREATER_THAN_OR_EQUAL,
+		LESS_THAN,
+		LESS_THAN_OR_EQUAL,
+		COUNT,
+	};
+};
+using CONDITION_COMPARISON = _ConditionComparison::Comparison;
+
+#pragma endregion

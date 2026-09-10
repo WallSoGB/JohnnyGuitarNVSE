@@ -167,7 +167,7 @@ bool Cmd_GetRegionWeatherPriority_Execute(COMMAND_ARGS) {
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &region) && region && IS_TYPE(region, TESRegion)) {
 		TESRegionDataWeather* weatherData = GetWeatherData(region);
 		if (weatherData) {
-			*result = weatherData->cPriority;
+			*result = weatherData->GetPriority();
 			if (IsConsoleMode()) {
 				Console_Print("GetRegionWeatherPriority >> %.f", *result);
 			}
@@ -183,7 +183,7 @@ bool Cmd_SetRegionWeatherPriority_Execute(COMMAND_ARGS) {
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &region, &priority) && region && IS_TYPE(region, TESRegion) && priority >= 0 && priority <= 100) {
 		TESRegionDataWeather* weatherData = GetWeatherData(region);
 		if (weatherData) {
-			weatherData->cPriority = priority;
+			weatherData->SetPriority(priority);
 			*result = 1;
 		}
 	}

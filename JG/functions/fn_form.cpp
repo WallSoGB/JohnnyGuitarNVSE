@@ -961,7 +961,7 @@ bool Cmd_GetAvailablePerks_Execute(COMMAND_ARGS) {
 	if (thisObj && thisObj->IsActor())
 		pTarget = static_cast<Actor*>(thisObj);
 
-	const uint32_t uiActorLevel = pTarget->avOwner.GetLevel();
+	const uint32_t uiActorLevel = pTarget->avOwner.GetActorLevel();
 
 	NVSEArrayVar* perkArr = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
 	auto pIter = TESDataHandler::GetSingleton()->kPerks.GetHead();
@@ -1037,7 +1037,7 @@ bool Cmd_GetPlayerKarmaTitle_Execute(COMMAND_ARGS) {
 	uint32_t titleOrTier = 0;
 	ExtractArgsEx(EXTRACT_ARGS_EX, &titleOrTier);
 	if (titleOrTier == 1) {
-		int karmaTier = CdeclCall<int>(0x47E040, PlayerCharacter::GetSingleton()->avOwner.GetActorValueF(kAVCode_Karma)); // GetKarmaTier
+		int karmaTier = CdeclCall<int>(0x47E040, PlayerCharacter::GetSingleton()->avOwner.GetActorValueF(ActorValue::Index::KARMA)); // GetKarmaTier
 		switch (karmaTier) {
 		case 0:
 			title = *(char**)0x11D41B4; // sAlignGood
@@ -1811,17 +1811,19 @@ bool Cmd_IsCellExpired_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetBaseEffectAV_Execute(COMMAND_ARGS) {
 	*result = -1;
-	EffectSetting* effect = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &effect) && effect && IS_TYPE(effect, EffectSetting) && (effect->archtype == 0) && effect->actorVal)
-		*result = effect->actorVal;
+	EffectSetting* pEffect = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pEffect) && pEffect && IS_TYPE(pEffect, EffectSetting)) {
+		if (pEffect->IsAssociatedActorValueUsed())
+			*result = pEffect->GetAssociatedActorValue();
+	}
 	return true;
 }
 
 bool Cmd_GetBaseEffectArchetype_Execute(COMMAND_ARGS) {
 	*result = -1;
-	EffectSetting* effect = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &effect) && effect && IS_TYPE(effect, EffectSetting))
-		*result = effect->archtype;
+	EffectSetting* pEffect = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pEffect) && pEffect && IS_TYPE(pEffect, EffectSetting))
+		*result = pEffect->GetEffectArchetype();
 	return true;
 }
 
@@ -2814,7 +2816,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		case FORM_TYPE::AlchemyItem:
 		{
 			const AlchemyItem* pAlchItem = static_cast<AlchemyItem*>(pForm);
-			pAlchItem->magicItem.list.GetEffectsString(cEffects, sizeof(cEffects));
+			pAlchItem->magicItem.GetEffectsString(cEffects, sizeof(cEffects));
 		}
 		break;
 
@@ -2831,7 +2833,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		{
 			const EnchantmentItem* pItem = TESEnchantableForm::GetFormEnchanting(pForm);
 			if (pItem)
-				pItem->magicItem.list.GetEffectsString(cEffects, sizeof(cEffects));
+				pItem->magicItem.GetEffectsString(cEffects, sizeof(cEffects));
 		}
 	}
 
