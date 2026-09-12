@@ -73,6 +73,7 @@
 #include "Bethesda/BGSMessage.hpp"
 #include "Bethesda/BGSMusicType.hpp"
 #include "Bethesda/BGSNote.hpp"
+#include "Bethesda/BGSPerk.hpp"
 #include "Bethesda/BGSPlaceableWater.hpp"
 #include "Bethesda/BGSRadiationStage.hpp"
 #include "Bethesda/BGSVoiceType.hpp"
@@ -3036,137 +3037,6 @@ static_assert(sizeof(TESImageSpaceModifier) == 0x730);
 #else
 static_assert(sizeof(TESImageSpaceModifier) == 0x74C);
 #endif
-
-// 10
-class BGSQuestPerkEntry : public BGSPerkEntry {
-public:
-	BGSQuestPerkEntry();
-	~BGSQuestPerkEntry();
-
-	virtual void	Fn_0E(void);
-
-	TESQuest* quest;				// 08
-	uint8_t				stage;				// 0C
-	uint8_t				pad[3];				// 0D
-};
-
-// 0C
-class BGSAbilityPerkEntry : public BGSPerkEntry {
-public:
-	BGSAbilityPerkEntry();
-	~BGSAbilityPerkEntry();
-
-	virtual void	Fn_0E(void);
-
-	SpellItem* ability;			// 08
-};
-
-class BGSEntryPointFunctionData {
-public:
-	BGSEntryPointFunctionData();
-	~BGSEntryPointFunctionData();
-
-	virtual void	Fn_00(void);
-	virtual void	Fn_01(void);
-	virtual void	Fn_02(void);
-	virtual void	Fn_03(void);
-	virtual void	Fn_04(void);
-	virtual void	Fn_05(void);
-	virtual void	Fn_06(void);
-};
-
-// 08
-class BGSEntryPointFunctionDataOneValue : public BGSEntryPointFunctionData {
-public:
-	BGSEntryPointFunctionDataOneValue();
-	~BGSEntryPointFunctionDataOneValue();
-
-	float				value;				// 04
-};
-
-// 0C
-class BGSEntryPointFunctionDataTwoValue : public BGSEntryPointFunctionData {
-public:
-	BGSEntryPointFunctionDataTwoValue();
-	~BGSEntryPointFunctionDataTwoValue();
-
-	float				value[2];			// 04
-};
-
-class BGSEntryPointFunctionDataLeveledList : public BGSEntryPointFunctionData {
-public:
-	BGSEntryPointFunctionDataLeveledList();
-	~BGSEntryPointFunctionDataLeveledList();
-
-	TESLevItem* leveledList;		// 04
-};
-
-class BGSEntryPointFunctionDataActivateChoice : public BGSEntryPointFunctionData {
-public:
-	BGSEntryPointFunctionDataActivateChoice();
-	~BGSEntryPointFunctionDataActivateChoice();
-
-	virtual void		Fn_07(void);
-
-	BSString			label;				// 04
-	Script*				script;			// 0C
-	uint32_t				flags;				// 10
-};
-
-struct EntryPointConditions {
-	TESCondition		tab1;
-	TESCondition		tab2;
-	TESCondition		tab3;
-};
-
-// 14
-class BGSEntryPointPerkEntry : public BGSPerkEntry {
-public:
-	BGSEntryPointPerkEntry();
-	~BGSEntryPointPerkEntry();
-
-	virtual void	Fn_0E(void);
-
-	uint8_t						entryPoint;		// 08
-	uint8_t						function;		// 09
-	uint8_t						conditionTabs;	// 0A
-	uint8_t						pad0B;			// 0B
-	BGSEntryPointFunctionData* data;			// 0C
-	EntryPointConditions* conditions;	// 10
-};
-
-// 50
-class BGSPerk : public TESForm {
-public:
-	BGSPerk();
-	~BGSPerk();
-
-	struct PerkData {
-		bool				isTrait;	// 00
-		uint8_t				minLevel;	// 01
-		uint8_t				numRanks;	// 02
-		bool				isPlayable;	// 03
-		bool				isHidden;	// 04
-		uint8_t				unk05;		// 05 todo: collapse to pad[3] after verifying isPlayable and isHidden
-		uint8_t				unk06;		// 06
-		uint8_t				unk07;		// 07
-	};
-
-	TESFullName				fullName;			// 18
-	TESDescription			description;		// 24
-	TESIcon					icon;				// 2C
-	PerkData				data;				// 38
-	TESCondition			conditions;			// 40
-	tList<BGSPerkEntry>		entries;			// 48
-
-	bool IsPerkAttainable(TESObjectREFR* apReference) const {
-		return ThisCall<bool>(0x5EBA00, this, apReference);
-	}
-
-	bool IsPerkAvailable(TESObjectREFR* apReference) const {
-		return ThisCall<bool>(0x785150, this, apReference);
-	}
-};
 
 // 74
 class BGSBodyPartData : public TESForm {

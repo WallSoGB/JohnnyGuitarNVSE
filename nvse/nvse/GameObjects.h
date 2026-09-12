@@ -4,6 +4,7 @@
 #include "GameBSExtraData.h"
 #include "GameExtraData.h"
 #include "GameSound.h"
+#include "Bethesda/BGSEntryPointPerkEntry.hpp"
 #include "Obsidian/AudioMarkerInfo.hpp"
 
 class ScriptLocals;

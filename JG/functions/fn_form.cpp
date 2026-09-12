@@ -973,25 +973,27 @@ bool Cmd_GetAvailablePerks_Execute(COMMAND_ARGS) {
 	if (thisObj && thisObj->IsActor())
 		pTarget = static_cast<Actor*>(thisObj);
 
-	const uint32_t uiActorLevel = pTarget->avOwner.GetActorLevel();
+	NVSEArrayVar* pArray = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
 
-	NVSEArrayVar* perkArr = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
-	auto pIter = TESDataHandler::GetSingleton()->kPerks.GetHead();
-	while (pIter && !pIter->IsEmpty()) {
-		BGSPerk* pPerk = pIter->GetItem();
-		pIter = pIter->GetNext();
+	if (pTarget) {
+		const uint32_t uiActorLevel = pTarget->avOwner.GetActorLevel();
+		auto pIter = TESDataHandler::GetSingleton()->kPerks.GetHead();
+		while (pIter && !pIter->IsEmpty()) {
+			BGSPerk* pPerk = pIter->GetItem();
+			pIter = pIter->GetNext();
 
-		if (!pPerk->data.isPlayable || pPerk->data.isTrait)
-			continue;
+			if (pPerk->GetLevel() <= 0)
+				continue;
 
-		if (pPerk->data.minLevel > 0 && pPerk->data.minLevel <= uiActorLevel) {
-			const int32_t iRank = pTarget->GetPerkRank(pPerk, 0);
-			if (iRank < pPerk->data.numRanks && pPerk->IsPerkAttainable(pTarget) && pPerk->IsPerkAvailable(pTarget))
-				g_arrInterface->AppendElement(perkArr, NVSEArrayElement(pPerk));
+			const uint8_t ucRank = pTarget->GetPerkRank(pPerk, false);
+			if (ucRank < pPerk->GetNumRanks() && !pPerk->GetIsTrait() && pPerk->IsPerkAttainable(pTarget) && pPerk->GetIsPlayable()) {
+				if (pPerk->IsPerkAvailable(pTarget) && pPerk->GetLevel() <= uiActorLevel)
+					g_arrInterface->AppendElement(pArray, NVSEArrayElement(pPerk));
+			}
 		}
 	}
 
-	g_arrInterface->AssignCommandResult(perkArr, result);
+	g_arrInterface->AssignCommandResult(pArray, result);
 	return true;
 }
 
