@@ -1,5 +1,5 @@
 #include "QuestObjectiveDisplayFix.hpp"
-#include <GameObjects.h>
+#include <GameForms.h>
 
 namespace QuestObjectiveDisplayFix {
 
@@ -10,7 +10,7 @@ namespace QuestObjectiveDisplayFix {
 		if (kDetour)
 			bResult = ThisCall<bool>(kDetour, apObjective);
 		else
-			bResult = apObjective->GetDisplayed();
+			bResult = apObjective->CheckState(BGSQuestObjective::State::DISPLAYED);
 
 		if (bResult) {
 			if (!(apObjective->GetDisplayTextLength() || apObjective->GetOwner()->GetFullNameLength()))
