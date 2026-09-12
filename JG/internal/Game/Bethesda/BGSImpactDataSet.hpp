@@ -11,51 +11,31 @@ public:
 	BGSImpactDataSet();
 	~BGSImpactDataSet();
 
-	struct _MaterialType {
-		enum Type : uint32_t {
-			NONE			= UINT32_MAX,
-			STONE			= 0,
-			DIRT			= 1,
-			GRASS			= 2,
-			GLASS			= 3,
-			METAL			= 4,
-			WOOD			= 5,
-			ORGANIC			= 6,
-			CLOTH			= 7,
-			WATER			= 8,
-			HOLLOW_METAL	= 9,
-			ORGANIC_BUG		= 10,
-			ORGANIC_GLOW	= 11,
-			COUNT,
-		};
-	};
-	using ImpactMaterialType = _MaterialType::Type;
-
-	BGSImpactData* pImpactDatas[ImpactMaterialType::COUNT];
+	BGSImpactData* pImpactDatas[IMPACT_MATERIAL_TYPE::COUNT];
 
 	TESFORM_TYPE(BGSImpactDataSet);
 
 #ifdef GAME
-	BGSImpactData* GetImpactData(ImpactMaterialType aeType) const;
+	BGSImpactData* GetImpactData(IMPACT_MATERIAL_TYPE aeType) const;
 
 	BGSImpactData* GetImpactData(HK_MATERIAL_TYPE aeHavokType) const;
 
 	static void ApplyImpactSwap(ImpactSwap* apSwap);
 
-	static ImpactMaterialType GetImpactMaterialType(HK_MATERIAL_TYPE aeHavokMaterial);
+	static IMPACT_MATERIAL_TYPE GetImpactMaterialType(HK_MATERIAL_TYPE aeHavokMaterial);
 #endif
 
 	static BGSImpactDataSet* GetDefaultImpactDataSet();
 
-	static const char* GetImpactMaterialName(ImpactMaterialType aeType);
+	static const char* GetImpactMaterialName(IMPACT_MATERIAL_TYPE aeType);
 
 protected:
 #ifdef GAME
 	static constexpr AddressPtr<BGSImpactDataSet*, 0x11CA830> pDefaultImpactDataSet;
-	static constexpr AddressPtr<const char*, 0x118C4A0, ImpactMaterialType::COUNT> pImpactMaterialString;
+	static constexpr AddressPtr<const char*, 0x118C4A0, IMPACT_MATERIAL_TYPE::COUNT> pImpactMaterialString;
 #else
 	static constexpr AddressPtr<BGSImpactDataSet*, 0xED9674> pDefaultImpactDataSet;
-	static constexpr AddressPtr<const char*, 0xE9B8BC, ImpactMaterialType::COUNT> pImpactMaterialString;
+	static constexpr AddressPtr<const char*, 0xE9B8BC, IMPACT_MATERIAL_TYPE::COUNT> pImpactMaterialString;
 #endif
 };
 

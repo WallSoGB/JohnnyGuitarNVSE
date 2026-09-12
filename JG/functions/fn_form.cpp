@@ -41,10 +41,10 @@ float(*GetWeaponDPS)(ActorValueOwner* avOwner, TESObjectWEAP* weapon, float cond
 
 bool Cmd_RemoveNoteQuest_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	TESQuest* quest = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &quest) && note && IS_TYPE(note, BGSNote) && IS_TYPE(quest, TESQuest)) {
-		note->questList.Remove(quest);
+	BGSNote* pNote = nullptr;
+	TESQuest* pQuest = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &pQuest) && pNote && IS_TYPE(pNote, BGSNote) && IS_TYPE(pQuest, TESQuest)) {
+		pNote->kOwnerQuests.Remove(pQuest);
 		*result = 1;
 	}
 	return true;
@@ -52,55 +52,62 @@ bool Cmd_RemoveNoteQuest_Execute(COMMAND_ARGS) {
 
 bool Cmd_AddNoteQuest_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	TESQuest* quest = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &quest) && note && IS_TYPE(note, BGSNote) && IS_TYPE(quest, TESQuest)) {
-		note->questList.Append(quest);
+	BGSNote* pNote = nullptr;
+	TESQuest* pQuest = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &pQuest) && pNote && IS_TYPE(pNote, BGSNote) && IS_TYPE(pQuest, TESQuest)) {
+		pNote->kOwnerQuests.AddTail(pQuest);
 		*result = 1;
 	}
 	return true;
 }
+
 bool Cmd_GetNoteQuestList_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	NVSEArrayVar* quests = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note) && note && IS_TYPE(note, BGSNote) && !note->questList.Empty()) {
-		ListNode<TESQuest>* iter = note->questList.Head();
-		do {
-			if (iter->data) {
-				g_arrInterface->AppendElement(quests, NVSEArrayElement(iter->data->GetFormID()));
-			}
-		} while (iter = iter->next);
+	BGSNote* pNote = nullptr;
+	NVSEArrayVar* pQuests = g_arrInterface->CreateArray(nullptr, 0, scriptObj);
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote) && pNote && IS_TYPE(pNote, BGSNote) && !pNote->kOwnerQuests.IsEmpty()) {
+		auto pIter = pNote->kOwnerQuests.GetHead();
+		while (pIter && !pIter->IsEmpty()) {
+			TESQuest* pQuest = pIter->GetItem();
+			if (pQuest)
+				g_arrInterface->AppendElement(pQuests, NVSEArrayElement(pQuest->GetFormID()));
+			pIter = pIter->GetNext();
+		}
 	}
-	g_arrInterface->AssignCommandResult(quests, result);
+	g_arrInterface->AssignCommandResult(pQuests, result);
 	return true;
 }
 
 bool Cmd_SetNoteImage_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	char path[MAX_PATH] = {};
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &path) && note && IS_TYPE(note, BGSNote) && note->type == BGSNote::kImage) {
-		note->picture->SetTextureName(path);
-		*result = 1;
+	BGSNote* pNote = nullptr;
+	char cPath[MAX_PATH] = {};
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &cPath) && pNote && IS_TYPE(pNote, BGSNote)) {
+		TESTexture* pImage = pNote->GetNoteImage();
+		if (pImage) {
+			pImage->SetTextureName(cPath);
+			*result = 1;
+		}
 	}
 	return true;
 }
 
 bool Cmd_GetNoteImage_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note) && note && IS_TYPE(note, BGSNote) && note->type == BGSNote::kImage) {
-		g_strInterface->Assign(PASS_COMMAND_ARGS, note->picture->GetTextureName());
+	BGSNote* pNote = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote) && pNote && IS_TYPE(pNote, BGSNote)) {
+		const TESTexture* pImage = pNote->GetNoteImage();
+		if (pImage)
+			g_strInterface->Assign(PASS_COMMAND_ARGS, pImage->GetTextureName());
 	}
 	return true;
 }
 bool Cmd_SetNoteTopic_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	TESTopic* topic = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &topic) && note && IS_TYPE(note, BGSNote) && IS_TYPE(topic, TESTopic) && note->type == BGSNote::kVoice) {
-		note->voice = topic;
+	BGSNote* pNote = nullptr;
+	TESTopic* pTopic = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &pTopic) && pNote && IS_TYPE(pNote, BGSNote) && IS_TYPE(pTopic, TESTopic) && pNote->GetNoteType() == BGSNote::Type::VOICE) {
+		pNote->SetNoteTopic(pTopic);
 		*result = 1;
 	}
 	return true;
@@ -108,20 +115,21 @@ bool Cmd_SetNoteTopic_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetNoteTopic_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note) && note && IS_TYPE(note, BGSNote) && note->type == BGSNote::kVoice) {
-		if (note->voice)
-			*(uint32_t*)result = note->voice->GetFormID();
+	BGSNote* pNote = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote) && pNote && IS_TYPE(pNote, BGSNote)) {
+		TESTopic* pTopic = pNote->GetNoteTopic();
+		if (pTopic)
+			*reinterpret_cast<uint32_t*>(result) = pTopic->GetFormID();
 	}
 	return true;
 }
 
 bool Cmd_SetNoteSound_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	TESSound* sound = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &sound) && note && IS_TYPE(note, BGSNote) && note->type == BGSNote::kSound) {
-		note->sound = sound;
+	BGSNote* pNote = nullptr;
+	TESSound* pSound = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &pSound) && pNote && IS_TYPE(pNote, BGSNote) && pNote->GetNoteType() == BGSNote::Type::SOUND) {
+		pNote->SetNoteSound(pSound);
 		*result = 1;
 	}
 	return true;
@@ -129,20 +137,21 @@ bool Cmd_SetNoteSound_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetNoteSound_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note) && note && IS_TYPE(note, BGSNote) && note->type == BGSNote::kSound) {
-		if (note->sound)
-			*(uint32_t*)result = note->sound->GetFormID();
+	BGSNote* pNote = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote) && pNote && IS_TYPE(pNote, BGSNote)) {
+		TESSound* pSound = pNote->GetNoteSound();
+		if (pSound)
+			*reinterpret_cast<uint32_t*>(result) = pSound->GetFormID();
 	}
 	return true;
 }
 
 bool Cmd_SetNoteType_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	int type = -1;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &type) && note && IS_TYPE(note, BGSNote) && type >= 0 && type <= 3) {
-		note->type = (BGSNote::Type)type;
+	BGSNote* pNote = nullptr;
+	BGSNote::Type eType;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &eType) && pNote && IS_TYPE(pNote, BGSNote) && eType >= BGSNote::Type::SOUND && eType <= BGSNote::Type::VOICE) {
+		pNote->SetNoteType(eType);
 		*result = 1;
 	}
 	return true;
@@ -150,29 +159,30 @@ bool Cmd_SetNoteType_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetNoteType_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note) && note && IS_TYPE(note, BGSNote)) {
-		*result = note->type;
+	BGSNote* pNote = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote) && pNote && IS_TYPE(pNote, BGSNote)) {
+		*result = pNote->GetNoteType();
 	}
 	return true;
 }
 
 bool Cmd_SetNoteSpeaker_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	TESNPC* npc = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &npc) && note && IS_TYPE(note, BGSNote) && note->type == BGSNote::kVoice) {
-		note->speaker = npc;
+	BGSNote* pNote = nullptr;
+	TESActorBase* pSpeaker = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &pSpeaker) && pNote && IS_TYPE(pNote, BGSNote) && pNote->GetNoteType() == BGSNote::Type::VOICE) {
+		pNote->SetNoteSpeaker(pSpeaker);
 		*result = 1;
 	}
 	return true;
 }
 bool Cmd_GetNoteSpeaker_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSNote* note = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note) && note && IS_TYPE(note, BGSNote) && note->type == BGSNote::kVoice) {
-		if (note->speaker)
-			*(uint32_t*)result = note->speaker->GetFormID();
+	BGSNote* pNote = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote) && pNote && IS_TYPE(pNote, BGSNote)) {
+		TESActorBase* pSpeaker = pNote->GetNoteSpeaker();
+		if (pSpeaker)
+			*reinterpret_cast<uint32_t*>(result) = pSpeaker->GetFormID();
 	}
 	return true;
 }
@@ -293,10 +303,10 @@ bool Cmd_GetFormRecipesAlt_Execute(COMMAND_ARGS) {
 
 bool Cmd_SetFactionFlags_Execute(COMMAND_ARGS) {
 	*result = 0;
-	TESFaction* faction = nullptr;
-	uint32_t flags = 0;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &faction, &flags) && faction && IS_TYPE(faction, TESFaction)) {
-		faction->factionFlags = flags;
+	TESFaction* pFaction = nullptr;
+	uint32_t uiFlags = 0;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pFaction, &uiFlags) && pFaction && IS_ID(pFaction, TESFaction)) {
+		pFaction->kData.uiFlags = uiFlags;
 		*result = 1;
 	}
 	return true;
@@ -304,10 +314,11 @@ bool Cmd_SetFactionFlags_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetFactionFlags_Execute(COMMAND_ARGS) {
 	*result = 0;
-	TESFaction* faction = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &faction) && faction && IS_TYPE(faction, TESFaction)) {
-		*result = faction->factionFlags;
-		if (IsConsoleMode()) Console_Print("GetFactionFlags >> %.f", *result);
+	TESFaction* pFaction = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pFaction) && pFaction && IS_ID(pFaction, TESFaction)) {
+		*result = pFaction->kData.uiFlags;
+		if (IsConsoleMode()) 
+			Console_Print("GetFactionFlags >> %.f", *result);
 	}
 	return true;
 }
@@ -1173,22 +1184,20 @@ bool Cmd_SetMessageIconPath_Execute(COMMAND_ARGS) {
 }
 
 bool Cmd_SetNoteRead_Execute(COMMAND_ARGS) {
-	uint32_t isRead = 0;
 	*result = 0;
-	BGSNote* note = nullptr;
-	uint32_t serialize = 0;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &note, &isRead, &serialize) && note) {
-		if (serialize)
+	BGSNote* pNote = nullptr;
+	BOOL bRead = FALSE;
+	BOOL bSave = FALSE;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pNote, &bRead, &bSave) && pNote) {
 		{
-			ThisCall(0x5E9300, note, isRead > 0);
-		}
-		else {
-			note->read = isRead > 0;
+			AutoSaveFormChanges kChanges(bSave);
+			pNote->SetHasBeenRead(bRead > 0);
 		}
 		*result = 1;
 	}
 	return true;
 }
+
 bool Cmd_GetQuestDelay_Execute(COMMAND_ARGS) {
 	*result = 0;
 	TESQuest* quest = nullptr;
@@ -1336,14 +1345,19 @@ bool Cmd_SetExplosionSound_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetCreatureCombatSkill_Execute(COMMAND_ARGS) {
 	*result = 0;
-	TESCreature* creature = nullptr;
-	if (!ExtractArgsEx(EXTRACT_ARGS_EX, &creature)) return true;
-	if (!creature) {
-		if (!thisObj || !thisObj->IsActor()) return true;
-		creature = (TESCreature*)((Actor*)thisObj)->GetActorBase();
+	TESCreature* pCreature = nullptr;
+	ExtractArgsEx(EXTRACT_ARGS_EX, &pCreature);
+
+	if (!pCreature) {
+		if (!thisObj || !thisObj->IsCreature()) 
+			return true;
+		
+		pCreature = static_cast<TESCreature*>(static_cast<Actor*>(thisObj)->GetActorBase());
 	}
-	if IS_TYPE(creature, TESCreature)
-		* result = creature->combatSkill;
+
+	if (pCreature && pCreature->GetFormType() == FORM_TYPE::TESCreature)
+		*result = pCreature->kData.ucCombatSkill;
+
 	return true;
 }
 
@@ -1446,10 +1460,10 @@ bool Cmd_GetFactionMembers_Execute(COMMAND_ARGS) {
 				return;
 
 			TESActorBase* pActorBase = static_cast<TESActorBase*>(apObject);
-			if (pActorBase->baseData.GetFactionList()->IsEmpty())
+			if (pActorBase->GetFactionList()->IsEmpty())
 				return;
 
-			auto pIter = pActorBase->baseData.GetFactionList();
+			auto pIter = pActorBase->GetFactionList();
 			while (pIter && !pIter->IsEmpty()) {
 				FactionRank* pRank = pIter->GetItem();
 				pIter = pIter->GetNext();
@@ -1555,7 +1569,7 @@ SPEC_NOINLINE bool Cmd_GetBaseScale_Eval(COMMAND_ARGS_EVAL) {
 		if (eType == FORM_TYPE::TESNPC)
 			*result = static_cast<TESNPC*>(pBase)->height;
 		else if (eType == FORM_TYPE::TESCreature)
-			*result = static_cast<TESCreature*>(pBase)->baseScale;
+			*result = static_cast<TESCreature*>(pBase)->GetBaseScale();
 	}
 	else if (thisObj) {
 		*result = GetBaseScale(thisObj);
@@ -2828,7 +2842,7 @@ bool Cmd_GetItemEffectString_Execute(COMMAND_ARGS) {
 		case FORM_TYPE::AlchemyItem:
 		{
 			const AlchemyItem* pAlchItem = static_cast<AlchemyItem*>(pForm);
-			pAlchItem->magicItem.GetEffectsString(cEffects, sizeof(cEffects));
+			pAlchItem->GetEffectsString(cEffects, sizeof(cEffects));
 		}
 		break;
 

@@ -507,7 +507,7 @@ bool ExtractFormattedString(FormatStringArgs& args, char* buffer) {
 							}
 							break;
 
-#if 1	// to be tested
+#if 0	// to be tested
 							case FORM_TYPE::TESFaction:
 							{
 								TESFaction* fact = DYNAMIC_CAST(form, TESForm, TESFaction);

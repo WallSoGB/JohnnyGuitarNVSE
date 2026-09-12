@@ -839,9 +839,28 @@ public:
 	bool GetSaveGameLoading() const {
 		return uiGlobalFlags.bSaveGameLoading;
 	}
+
+	bool GetThreadAllowChanges() const {
+		return ThisCall<bool>(0x462480, this);
+	}
+
+	[[nodiscard("Previous value")]] bool SetThreadAllowChanges(bool abAllow) {
+		return ThisCall<bool>(0x4623F0, this, abAllow);
+	}
 };
 
 ASSERT_SIZE(BGSSaveLoadGame, 0x24C);
+
+class AutoSaveFormChanges {
+	bool bOrgVal;
+public:
+	AutoSaveFormChanges(bool abAllow) noexcept {
+		bOrgVal = BGSSaveLoadGame::GetSingleton()->SetThreadAllowChanges(abAllow);
+	}
+	~AutoSaveFormChanges() noexcept {
+		std::ignore = BGSSaveLoadGame::GetSingleton()->SetThreadAllowChanges(bOrgVal);
+	}
+};
 
 #if RUNTIME
 class SaveGameManager {

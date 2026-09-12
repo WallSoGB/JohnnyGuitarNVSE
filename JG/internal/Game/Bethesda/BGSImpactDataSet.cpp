@@ -2,7 +2,7 @@
 
 #ifdef GAME
 // GAME - 0x58E9D0
-BGSImpactData* BGSImpactDataSet::GetImpactData(ImpactMaterialType aeType) const {
+BGSImpactData* BGSImpactDataSet::GetImpactData(IMPACT_MATERIAL_TYPE aeType) const {
     return ThisCall<BGSImpactData*>(0x58E9D0, this, aeType);
 }
 
@@ -17,8 +17,8 @@ void BGSImpactDataSet::ApplyImpactSwap(ImpactSwap* apSwap) {
 }
 
 // GAME - 0x58E8F0
-BGSImpactDataSet::ImpactMaterialType BGSImpactDataSet::GetImpactMaterialType(HK_MATERIAL_TYPE aeHavokMaterial) {
-    return CdeclCall<ImpactMaterialType>(0x58E8F0, aeHavokMaterial);
+IMPACT_MATERIAL_TYPE BGSImpactDataSet::GetImpactMaterialType(HK_MATERIAL_TYPE aeHavokMaterial) {
+    return CdeclCall<IMPACT_MATERIAL_TYPE>(0x58E8F0, aeHavokMaterial);
 }
 #endif
 
@@ -27,6 +27,6 @@ BGSImpactDataSet* BGSImpactDataSet::GetDefaultImpactDataSet() {
     return pDefaultImpactDataSet;
 }
 
-const char* BGSImpactDataSet::GetImpactMaterialName(ImpactMaterialType aeType) {
+const char* BGSImpactDataSet::GetImpactMaterialName(IMPACT_MATERIAL_TYPE aeType) {
     return pImpactMaterialString[aeType];
 }

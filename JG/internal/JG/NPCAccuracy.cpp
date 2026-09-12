@@ -78,7 +78,7 @@ namespace NPCAccuracy {
 
 	static SPEC_NOINLINE ScrapVector<uint32_t> __fastcall GetFactionsForActor(Actor* apActor) {
 		TESActorBase* pActorBase = static_cast<TESActorBase*>(GetPermanentBaseForm(apActor));
-		ScrapVector<uint32_t> kFactions = GetFactionsInList(pActorBase->baseData.GetFactionList());
+		ScrapVector<uint32_t> kFactions = GetFactionsInList(pActorBase->GetFactionList());
 
 		const ExtraFactionChanges* pFactionChanges = apActor->extraDataList.GetExtraData<ExtraFactionChanges>();
 		if (pFactionChanges && pFactionChanges->pFactionChanges) {

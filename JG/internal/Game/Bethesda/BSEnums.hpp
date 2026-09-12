@@ -1499,6 +1499,26 @@ struct _HavokMaterialType {
 };
 using HK_MATERIAL_TYPE = _HavokMaterialType::Type;
 
+struct _ImpactMaterialType {
+	enum Type : uint32_t {
+		NONE			= UINT32_MAX,
+		STONE			= 0,
+		DIRT			= 1,
+		GRASS			= 2,
+		GLASS			= 3,
+		METAL			= 4,
+		WOOD			= 5,
+		ORGANIC			= 6,
+		CLOTH			= 7,
+		WATER			= 8,
+		HOLLOW_METAL	= 9,
+		ORGANIC_BUG		= 10,
+		ORGANIC_GLOW	= 11,
+		COUNT,
+	};
+};
+using IMPACT_MATERIAL_TYPE = _ImpactMaterialType::Type;
+
 enum SoundMessageType : uint32_t {
 	SM_PLAY						= 0x1,
 	SM_UNPAUSE					= 0x2,
@@ -1839,3 +1859,42 @@ struct _ConditionComparison {
 using CONDITION_COMPARISON = _ConditionComparison::Comparison;
 
 #pragma endregion
+
+struct _SoundLevel {
+	enum Level {
+		LOUD,
+		NORMAL,
+		SILENT,
+		COUNT,
+	};
+};
+using SOUND_LEVEL = _SoundLevel::Level;
+
+struct _CreatureSoundType {
+	enum Type {
+		LEFT		= 0,
+		RIGHT		= 1,
+		BACKLEFT	= 2,
+		BACKRIGHT	= 3,
+		IDLE		= 4,
+		AWARE		= 5,
+		ATTACK		= 6,
+		HIT			= 7,
+		DEATH		= 8,
+		WEAPON		= 9,
+		MOVEMENT	= 10,
+		AWAKE		= 11,
+		AUX1		= 12,
+		AUX2		= 13,
+		AUX3		= 14,
+		AUX4		= 15,
+		AUX5		= 16,
+		AUX6		= 17,
+		AUX7		= 18,
+		AUX8		= 19,
+		JUMP		= 20,
+		LOOP		= 21,
+		COUNT		= 22
+	};
+};
+using CREATURE_SOUND_TYPE = _CreatureSoundType::Type;
