@@ -80,6 +80,7 @@
 #include "Bethesda/EffectSetting.hpp"
 #include "Bethesda/EnchantmentItem.hpp"
 #include "Bethesda/MagicItemForm.hpp"
+#include "Bethesda/Script.hpp"
 #include "Bethesda/SpellItem.hpp"
 #include "Bethesda/TESCreature.hpp"
 #include "Bethesda/TESEyes.hpp"
@@ -101,6 +102,7 @@
 #include "Bethesda/TESObjectLIGH.hpp"
 #include "Bethesda/TESObjectMISC.hpp"
 #include "Bethesda/TESObjectSTAT.hpp"
+#include "Bethesda/TESTopicInfo.hpp"
 #include "Obsidian/BGSDehydrationStage.hpp"
 #include "Obsidian/BGSHungerStage.hpp"
 #include "Obsidian/BGSSleepDeprevationStage.hpp"
@@ -414,21 +416,6 @@ struct PermanentClonedForm {
 // 020
 class BGSTextureSet;
 
-// 0C
-struct LvlListExtra {
-	union						// 00
-	{
-		TESFaction* ownerFaction;
-		TESNPC*		ownerNPC;
-	};
-	union						// 04
-	{
-		uint32_t		requiredRank;
-		TESGlobal*	globalVar;
-	};
-	float			health;		// 08
-};
-
 // 8
 // ### derives from NiObject
 class BSTextureSet {
@@ -443,68 +430,6 @@ public:
 /**** forms ****/
 
 class TESTopic;
-
-struct TESTopicInfoResponse {
-	struct Data {
-		uint32_t	emotionType;	//	00
-		uint32_t	emotionValue;	//	04	Init'd to 0x32
-		uint32_t	unused;			//	08
-		uint8_t	responseNumber;	//	0C
-		uint8_t	pad00D[3];
-		uint32_t	sound;			//	10
-		uint8_t	flags;			//	14	Init'd to 1
-		uint8_t	pad015[3];
-	};
-
-	Data					data;					//	000
-	BSString				responseText;			//	018
-	TESIdleForm*			spkeakerAnimation;		//	020
-	TESIdleForm*			listenerAnimation;		//	024
-	TESTopicInfoResponse*	next;					//	028
-};
-
-// 50
-class TESTopicInfo : public TESForm {
-public:
-	TESTopicInfo();
-	~TESTopicInfo();
-
-	struct RelatedTopics {
-		tList<TESTopic>		linkFrom;
-		tList<TESTopic>		choices;
-		tList<TESTopic>		followUps;
-	};
-
-	TESCondition		conditions;			// 18
-	uint16_t				unk20;				// 20
-	bool				saidOnce;			// 22
-	uint8_t				type;				// 23
-	uint8_t				nextSpeaker;		// 24
-	uint8_t				flags1;				// 25
-	uint8_t				flags2;				// 26
-	uint8_t				pad27;				// 27
-	BSString			prompt;				// 28
-	tList<TESTopic>		addTopics;			// 30
-	RelatedTopics*		relatedTopics;		// 38
-	uint32_t				speaker;			// 3C
-	uint32_t				actorValueOrPerk;	// 40
-	uint32_t				speechChallenge;	// 44
-	TESQuest*			quest;				// 48
-	uint32_t				modInfoFileOffset;	// 4C	during LoadForm
-#if USE_MODDED_CHANGES
-	TESTopic*				pParentTopic;
-#endif
-
-	void RunResultScript(bool onEnd, Actor* actor);
-
-	void SetSaidOnce() {
-		ThisCall(0x61F220, this);
-	}
-
-	void ResetSaidOnceFlags() {
-		ThisCall(0x61F280, this);
-	}
-};
 
 class TopicInfoArray : public NiTLargePrimitiveArray<TESTopicInfo*> {
 public:
@@ -2151,7 +2076,8 @@ static_assert(sizeof(TESWorldSpace) == 0xEC);
 static_assert(sizeof(TESWorldSpace) == 0xFC);
 #endif
 
-struct VariableInfo {
+class ScriptVariable {
+public:
 	uint32_t			idx;		// 00
 	uint32_t			pad04;		// 04
 	double			data;		// 08

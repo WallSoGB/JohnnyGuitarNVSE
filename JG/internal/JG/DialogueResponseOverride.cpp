@@ -13,32 +13,28 @@ namespace DialogueResponseOverride {
 		DWORD retVal = ThisCall<DWORD>(originalTopicInfoLoad, topicInfo, modInfo);
 		if (retVal)
 		{
-			auto responseList = ThisCall<TESTopicInfoResponse**>(0x061E780, topicInfo, NULL);
-			if (auto responseItem = *responseList)
-			{
-				do
-				{
-					DialogueCache diaCache = {};
-					diaCache.emotionType = responseItem->data.emotionType;
-					diaCache.emotionValue = responseItem->data.emotionValue;
-					diaCache.responseNumber = responseItem->data.responseNumber;
-					diaCache.speakerAnimation = (responseItem->spkeakerAnimation) ? responseItem->spkeakerAnimation->GetFormID() : 0;
-					diaCache.listenerAnimation = (responseItem->listenerAnimation) ? responseItem->listenerAnimation->GetFormID() : 0;
-					cachedDialogueInfo[topicInfo->GetFormID()][responseItem->data.responseNumber] = diaCache;
-				} while (responseItem = responseItem->next);
+			ResponseListWrapper* responseList = ThisCall<ResponseListWrapper*>(0x061E780, topicInfo, NULL);
+			for (TESResponse* pIter = responseList->pHead; pIter; pIter = pIter->GetNext()) {
+				DialogueCache diaCache = {};
+				diaCache.emotionType = pIter->GetEmotion();
+				diaCache.emotionValue = pIter->GetEmotionValue();
+				diaCache.responseNumber = pIter->GetResponseID();
+				diaCache.speakerAnimation = pIter->GetSpeakerIdle() ? pIter->GetSpeakerIdle()->GetFormID() : 0;
+				diaCache.listenerAnimation = pIter->GetListenerIdle() ? pIter->GetListenerIdle()->GetFormID() : 0;
+				cachedDialogueInfo[topicInfo->GetFormID()][pIter->GetResponseID()] = diaCache;
 			}
 		}
 		return retVal;
 	}
 
 	static  DialogueResponse* __fastcall DialogueResponse_Init(DialogueResponse* responseCol,
-		void* edx, TESQuest* quest, TESTopic* topic, TESTopicInfo* topicInfo, Actor* speaker, TESTopicInfoResponse* topicInfoResponse)
+		void* edx, TESQuest* quest, TESTopic* topic, TESTopicInfo* topicInfo, Actor* speaker, TESResponse* topicInfoResponse)
 	{
 		if (auto diaCont = overrideMap.find(topicInfo->GetFormID()); diaCont != overrideMap.end())
 		{
 
 			Setting* iSTDEmotionVal = (Setting*)0x11CBDF4;
-			if (auto diaItem = diaCont->second.find(topicInfoResponse->data.responseNumber); diaItem != diaCont->second.end())
+			if (auto diaItem = diaCont->second.find(topicInfoResponse->GetResponseID()); diaItem != diaCont->second.end())
 			{
 				if (diaItem->second.m_emotionType < kEmotionMax)
 				{

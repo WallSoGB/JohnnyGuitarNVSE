@@ -1415,6 +1415,8 @@ using SEX = _Sex::Sex;
 
 #pragma endregion
 
+#pragma region Dialogue
+
 struct _DialogueType {
 	enum Type {
 		TOPIC			= 0,
@@ -1429,6 +1431,42 @@ struct _DialogueType {
 	};
 };
 using DIALOGUE_TYPE = _DialogueType::Type;
+
+struct _DialogueSpeaker {
+	enum Type : uint32_t {
+		TARGET	= 0,
+		SELF	= 1,
+		EITHER	= 2,
+		COUNT,
+	};
+};
+using DIALOGUE_SPEAKER = _DialogueSpeaker::Type;
+
+struct _DialogueEmotion {
+	enum Emotion {
+		NEUTRAL		= 0,
+		ANGER		= 1,
+		DISGUST		= 2,
+		FEAR		= 3,
+		SAD			= 4,
+		HAPPY		= 5,
+		SURPRISE	= 6,
+		PAINED		= 7,
+		COUNT
+	};
+};
+using DIALOGUE_EMOTION = _DialogueEmotion::Emotion;
+
+struct _DialogueScriptType {
+	enum Type : uint32_t {
+		BEGIN = 0,
+		END = 1,
+		COUNT,
+	};
+};
+using DIALOGUE_SCRIPT_TYPE = _DialogueScriptType::Type;
+
+#pragma endregion
 
 struct _FactionRelation {
 	enum Type : uint32_t {
