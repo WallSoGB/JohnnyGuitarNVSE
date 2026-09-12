@@ -34,17 +34,6 @@ public:
 	};
 	using SpeechChallengeLevel = _SpeechChallengeType::Type;
 
-	struct _IntelligenceCheckType {
-		enum Type : uint32_t {
-			NONE		= 0,
-			DUMMY		= 1,
-			EITHER		= 2,
-			NON_DUMMY	= 3,
-			COUNT
-		};
-	};
-	using IntelligenceCheckType = _IntelligenceCheckType::Type;
-
 	struct ALIGN2 _TopicInfoFlags {
 		enum Flags1 {
 			GOODBYE				= 1u << 0,
@@ -156,7 +145,8 @@ public:
 	bool IsSayOnceADay() const;
 	bool IsAlwaysDarkened() const;
 
-	IntelligenceCheckType GetIntelligenceCheckType() const;
+	DIALOGUE_DUMMY_STATE GetDummyNodeState() const;
+	void SetDummyNodeState(DIALOGUE_DUMMY_STATE aeState);
 
 	const BSString& GetPrompt() const;
 	bool HasPrompt() const;

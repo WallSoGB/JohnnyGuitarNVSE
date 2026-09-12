@@ -127,17 +127,25 @@ bool TESTopicInfo::IsAlwaysDarkened() const {
 }
 
 // GAME - 0x61E720
-TESTopicInfo::IntelligenceCheckType TESTopicInfo::GetIntelligenceCheckType() const {
+DIALOGUE_DUMMY_STATE TESTopicInfo::GetDummyNodeState() const {
 #ifdef GAME
-	return ThisCall<IntelligenceCheckType>(0x61E720, this);
+	return ThisCall<DIALOGUE_DUMMY_STATE>(0x61E720, this);
 #else
 	if (kData.usFlags.bDummyOnly)
-		return IntelligenceCheckType::DUMMY;
+		return DIALOGUE_DUMMY_STATE::DUMMY;
 	else if (kData.usFlags.bNonDummyOnly)
-		return IntelligenceCheckType::NON_DUMMY;
+		return DIALOGUE_DUMMY_STATE::NON_DUMMY;
 	else
-		return IntelligenceCheckType::EITHER;
+		return DIALOGUE_DUMMY_STATE::EITHER;
 #endif
+}
+
+void TESTopicInfo::SetDummyNodeState(DIALOGUE_DUMMY_STATE aeState) {
+	kData.ucFlags2.Clear(TopicInfoFlags2::DUMMY_ONLY | TopicInfoFlags2::NON_DUMMY_ONLY);
+	if (aeState == DIALOGUE_DUMMY_STATE::DUMMY)
+		kData.usFlags.bDummyOnly = true;
+	if (aeState == DIALOGUE_DUMMY_STATE::NON_DUMMY)
+		kData.usFlags.bNonDummyOnly = true;
 }
 
 // GAME - 0x4610D0

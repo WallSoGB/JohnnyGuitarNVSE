@@ -1466,6 +1466,17 @@ struct _DialogueScriptType {
 };
 using DIALOGUE_SCRIPT_TYPE = _DialogueScriptType::Type;
 
+struct _DialogueDummyState {
+	enum State : uint32_t {
+		NONE		= 0,
+		DUMMY		= 1,
+		EITHER		= 2,
+		NON_DUMMY	= 3,
+		COUNT
+	};
+};
+using DIALOGUE_DUMMY_STATE = _DialogueDummyState::State;
+
 #pragma endregion
 
 struct _FactionRelation {

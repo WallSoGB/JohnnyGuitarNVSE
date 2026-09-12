@@ -102,6 +102,8 @@
 #include "Bethesda/TESObjectLIGH.hpp"
 #include "Bethesda/TESObjectMISC.hpp"
 #include "Bethesda/TESObjectSTAT.hpp"
+#include "Bethesda/TESQuest.hpp"
+#include "Bethesda/TESTopic.hpp"
 #include "Bethesda/TESTopicInfo.hpp"
 #include "Obsidian/BGSDehydrationStage.hpp"
 #include "Obsidian/BGSHungerStage.hpp"
@@ -426,54 +428,6 @@ public:
 	void* _vtbl;	// 0
 	uint32_t	unk04;		// 4
 };
-
-/**** forms ****/
-
-class TESTopic;
-
-class TopicInfoArray : public NiTLargePrimitiveArray<TESTopicInfo*> {
-public:
-};
-typedef void* INFO_LINK_ELEMENT;
-
-// 48
-class TESTopic : public TESForm {
-public:
-	TESTopic();
-	~TESTopic();
-
-	struct Info	//	34
-	{
-		TESQuest* quest;		//	00
-		TopicInfoArray	infoArray;	//	04
-		BSSimpleArray<INFO_LINK_ELEMENT>		unk01C;
-		TESQuest* quest2;	//	2C
-		uint8_t			unk030;
-		uint8_t			pad031[3];
-	};
-
-	TESFullName		fullName;		// 18
-
-	uint8_t			unk24;			// 24
-	uint8_t			unk25;			// 25	used as bool or flag, connected to INFOGENERAL
-	uint8_t			pad26[2];		// 26
-	float			unk28;			// 28
-	tList<Info>		infos;			// 2C
-	uint32_t			unk34;			// 34	string TDUM
-	uint32_t			unk38;			// 38
-	uint16_t			unk3C;			// 3C
-	uint16_t			unk3E;			// 3E
-	BSString		editorIDstr;	// 40
-
-	TopicInfoArray* GetTopicInfosForQuest(TESQuest* apQuest) {
-		return ThisCall<TopicInfoArray*>(0x619F70, this, apQuest);
-	}
-};
-
-
-
-
-
 
 // A0
 class BGSTextureSet : public TESBoundObject {
@@ -2086,52 +2040,6 @@ public:
 	uint32_t			unk14;		// 14
 	BSString		name;		// 18
 };
-
-// TESQuest (6C)
-class TESQuest : public TESForm, public TESScriptableForm, public TESIcon, public TESFullName {
-public:
-	TESQuest();
-	~TESQuest();
-
-	virtual char* GetEditorName() const;
-
-	struct StageInfo {
-		uint8_t			stage;		// 00 stageID
-		uint8_t			unk001;		// 01 status ?
-		uint8_t			pad[2];		// 02
-		tList<void>		unk004;		// 04 log entries
-	};
-
-#ifdef EDITOR
-	void*					pUnk60;
-#endif
-	uint8_t					flags;				// 3C	bit0 is startGameEnabled/isRunning
-	uint8_t					priority;			// 3D
-	uint8_t					pad3E[2];			// 3E
-	float					questDelayTime;		// 40
-	tList<StageInfo>		stages;				// 44
-	tList<void>				lVarOrObjectives;	// 4C
-		// So: this list would contain both Objectives and LocalVariables !
-		// That seems very strange but still, looking at Get/SetObjective... and ShowQuestVars there's no doubt.
-	TESCondition			conditions;			// 54
-#ifdef EDITOR
-	uint32_t				unk84;
-#endif
-	ScriptLocals*		scriptEventList;	// 5C
-#ifdef GAME
-	uint8_t					currentStage;		// 60
-	BSString				editorName;			// 64
-#endif
-
-	bool SetStage(uint8_t stageID);
-	BGSQuestObjective* GetObjective(uint32_t objectiveID);
-};
-
-#ifdef GAME
-static_assert(sizeof(TESQuest) == 0x6C);
-#else
-static_assert(sizeof(TESQuest) == 0x90);
-#endif
 
 // TESIdleForm (54)
 class TESIdleForm;

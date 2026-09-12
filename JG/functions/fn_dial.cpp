@@ -174,10 +174,10 @@ bool Cmd_GetTopicInfo_Execute(COMMAND_ARGS) {
 		if (pTargetTopic) {
 			if (pQuest)
 			{
-				auto pTopicInfos = pTargetTopic->GetTopicInfosForQuest(pQuest);
+				const TopicInfoArray* pTopicInfos = pTargetTopic->GetInfoArray(pQuest);
 				if (pTopicInfos) {
 					for (uint32_t i = 0; i < pTopicInfos->GetSize(); i++) {
-						auto pTopicInfo = pTopicInfos->GetAt(i);
+						TESTopicInfo* pTopicInfo = pTopicInfos->GetAt(i);
 						if (pTopicInfo)
 							g_arrInterface->AppendElement(pStoredInfos, NVSEArrayElement(pTopicInfo));
 					}
@@ -185,16 +185,18 @@ bool Cmd_GetTopicInfo_Execute(COMMAND_ARGS) {
 			}
 			else
 			{
-				auto pTargetTopicInfoList = &pTargetTopic->infos;
-				for (auto kIter = pTargetTopicInfoList->Begin(); !kIter.End(); kIter.Next()) {
-					if (*kIter) {
-						auto pTopicInfos = &(*kIter)->infoArray;
+				auto pIter = pTargetTopic->GetQuestInfoList();
+				while (pIter && !pIter->IsEmpty()){
+					const QuestInfo* pQuestInfo = pIter->GetItem();
+					if (pQuestInfo) {
+						auto pTopicInfos = pQuestInfo->GetTopicInfos();
 						for (uint32_t i = 0; i < pTopicInfos->GetSize(); i++) {
-							auto pTopicInfo = pTopicInfos->GetAt(i);
+							TESTopicInfo* pTopicInfo = pTopicInfos->GetAt(i);
 							if (pTopicInfo)
 								g_arrInterface->AppendElement(pStoredInfos, NVSEArrayElement(pTopicInfo));
 						}
 					}
+					pIter = pIter->GetNext();
 				}
 			}
 
@@ -204,10 +206,10 @@ bool Cmd_GetTopicInfo_Execute(COMMAND_ARGS) {
 			while (pIter && !pIter->IsEmpty()) {
 				TESTopic* pTopic = pIter->GetItem();
 				pIter = pIter->GetNext();
-				auto pTopicInfos = pTopic->GetTopicInfosForQuest(pQuest);
+				const TopicInfoArray* pTopicInfos = pTopic->GetInfoArray(pQuest);
 				if (pTopicInfos) {
 					for (uint32_t i = 0; i < pTopicInfos->GetSize(); i++) {
-						auto pTopicInfo = pTopicInfos->GetAt(i);
+						TESTopicInfo* pTopicInfo = pTopicInfos->GetAt(i);
 						if (pTopicInfo)
 							g_arrInterface->AppendElement(pStoredInfos, NVSEArrayElement(pTopicInfo));
 					}

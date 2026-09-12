@@ -1203,10 +1203,11 @@ bool Cmd_SetNoteRead_Execute(COMMAND_ARGS) {
 
 bool Cmd_GetQuestDelay_Execute(COMMAND_ARGS) {
 	*result = 0;
-	TESQuest* quest = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &quest) && quest && IS_TYPE(quest, TESQuest)) {
-		*result = quest->questDelayTime;
-		if (IsConsoleMode()) Console_Print("GetQuestDelay >> %.3f", *result);
+	TESQuest* pQuest = nullptr;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pQuest) && pQuest && IS_TYPE(pQuest, TESQuest)) {
+		*result = pQuest->GetScriptProcessingDelay();
+		if (IsConsoleMode())
+			Console_Print("GetQuestDelay >> %.3f", *result);
 	}
 	return true;
 }
@@ -1272,8 +1273,8 @@ bool Cmd_SetWeaponVATSTraitNumeric_Execute(COMMAND_ARGS) {
 SPEC_NOINLINE bool Cmd_GetQuestFailed_Eval(COMMAND_ARGS_EVAL) {
 	*result = 0;
 	TESQuest* pQuest = static_cast<TESQuest*>(arg1);
-	if (pQuest)
-		*result = (pQuest->flags & 0x40) ? 1 : 0;
+	if (pQuest && pQuest->GetFormType() == FORM_TYPE::TESQuest)
+		*result = pQuest->GetFailed();
 	return true;
 }
 
