@@ -757,6 +757,24 @@
     <ClCompile Include="internal\Game\Bethesda\BGSQuestObjective.cpp">
       <Filter>internal\Game\Bethesda</Filter>
     </ClCompile>
+    <ClCompile Include="internal\Game\Obsidian\MediaLocationController.cpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Obsidian\MediaSet.cpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Obsidian\TESRecipeComponent.cpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Obsidian\TESRecipe.cpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Obsidian\TESCasino.cpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Obsidian\TESChallenge.cpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -1962,6 +1980,30 @@
     </ClInclude>
     <ClInclude Include="internal\Game\Bethesda\BGSQuestObjective.hpp">
       <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\MediaLocationController.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\MediaSet.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\TESLoadScreenType.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\TESRecipeCategory.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\TESRecipeComponent.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\TESRecipe.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\TESCasino.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Obsidian\TESChallenge.hpp">
+      <Filter>internal\Game\Obsidian</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

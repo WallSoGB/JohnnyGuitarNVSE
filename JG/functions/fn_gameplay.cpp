@@ -123,7 +123,7 @@ bool Cmd_GetCasinoDeckTexture_Execute(COMMAND_ARGS) {
 	TESCasino* pCasino = nullptr;
 	uint32_t uiDeck = 0;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pCasino, &uiDeck) && pCasino && IS_TYPE(pCasino, TESCasino) && uiDeck >= 0 && uiDeck <= 3) {
-		const char* pPath = pCasino->blackjackDeck[uiDeck].GetTextureName();
+		const char* pPath = pCasino->kTextures[uiDeck].GetTextureName();
 		if (IsConsoleMode())
 			Console_Print("GetCasinoDeckTexture >> %s", pPath);
 		g_strInterface->Assign(PASS_COMMAND_ARGS, pPath);
@@ -137,7 +137,7 @@ bool Cmd_SetCasinoDeckTexture_Execute(COMMAND_ARGS) {
 	uint32_t uiDeck;
 	char cPath[MAX_PATH] = {};
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pCasino, &uiDeck, &cPath) && pCasino && IS_TYPE(pCasino, TESCasino) && cPath[0] && uiDeck >= 0 && uiDeck <= 3) {
-		pCasino->blackjackDeck[uiDeck].SetTextureName(cPath);
+		pCasino->kTextures[uiDeck].SetTextureName(cPath);
 		*result = 1;
 	}
 	return true;
@@ -146,10 +146,10 @@ bool Cmd_SetCasinoDeckTexture_Execute(COMMAND_ARGS) {
 bool Cmd_GetCasinoChip_Execute(COMMAND_ARGS) {
 	*result = 0;
 	TESCasino* pCasino = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pCasino) && pCasino && pCasino->currencyRefID) {
-		TESForm* pChipForm = TESForm::GetFormByNumericID(pCasino->currencyRefID);
-		if (pChipForm)
-			*reinterpret_cast<uint32_t*>(result) = pChipForm->GetFormID();
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pCasino) && pCasino) {
+		TESForm* pChip = pCasino->GetChipType();
+		if (pChip)
+			*reinterpret_cast<uint32_t*>(result) = pChip->GetFormID();
 	}
 	return true;
 }
@@ -159,7 +159,7 @@ bool Cmd_SetCasinoChip_Execute(COMMAND_ARGS) {
 	TESCasino* pCasino = nullptr;
 	TESForm* pChip = nullptr;
 	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pCasino, &pChip) && pCasino && IS_TYPE(pCasino, TESCasino) && pChip && IS_TYPE(pChip, TESCasinoChips)) {
-		pCasino->currencyRefID = pChip->GetFormID();
+		pCasino->kData.uiCasinoChipID = pChip->GetFormID();
 		*result = 1;
 	}
 	return true;

@@ -103,12 +103,19 @@
 #include "Obsidian/BGSDehydrationStage.hpp"
 #include "Obsidian/BGSHungerStage.hpp"
 #include "Obsidian/BGSSleepDeprevationStage.hpp"
+#include "Obsidian/MediaLocationController.hpp"
+#include "Obsidian/MediaSet.hpp"
 #include "Obsidian/TESAmmoEffect.hpp"
 #include "Obsidian/TESCaravanCard.hpp"
 #include "Obsidian/TESCaravanDeck.hpp"
 #include "Obsidian/TESCaravanMoney.hpp"
+#include "Obsidian/TESCasino.hpp"
 #include "Obsidian/TESCasinoChips.hpp"
+#include "Obsidian/TESChallenge.hpp"
+#include "Obsidian/TESLoadScreenType.hpp"
 #include "Obsidian/TESObjectIMOD.hpp"
+#include "Obsidian/TESRecipe.hpp"
+#include "Obsidian/TESRecipeCategory.hpp"
 #include "Obsidian/TESReputation.hpp"
 
 class PathingLocation;
@@ -2804,90 +2811,6 @@ static_assert(sizeof(TESCombatStyle) == 0x108);
 static_assert(sizeof(TESCombatStyle) == 0x11C);
 #endif
 
-// 2C
-class TESRecipeCategory : public TESForm {
-public:
-	TESRecipeCategory();
-	~TESRecipeCategory();
-
-	TESFullName			fullName;	// 18
-
-	uint32_t				flags;		// 24
-};
-#ifdef GAME
-static_assert(sizeof(TESRecipeCategory) == 0x28);
-#else
-static_assert(sizeof(TESRecipeCategory) == 0x3C);
-#endif
-
-struct RecipeComponent {
-	uint32_t		quantity;
-	TESForm* item;
-};
-
-// 5C
-class TESRecipe : public TESForm {
-public:
-	TESRecipe();
-	~TESRecipe();
-
-	struct ComponentList : tList<RecipeComponent> {
-		void* GetComponents(Script* scriptObj);
-		void AddComponent(TESForm* form, uint32_t quantity);
-		uint32_t RemoveComponent(TESForm* form);
-		void ReplaceComponent(TESForm* form, TESForm* replace);
-		uint32_t GetQuantity(TESForm* form);
-		void SetQuantity(TESForm* form, uint32_t quantity);
-	};
-
-	TESFullName				fullName;		// 18
-
-	uint32_t					reqSkill;		// 24
-	uint32_t					reqSkillLevel;	// 28
-	uint32_t					categoryID;		// 2C
-	uint32_t					subCategoryID;	// 30
-	TESCondition			conditions;		// 34
-	ComponentList			inputs;			// 3C
-	ComponentList			outputs;		// 44
-	uint32_t					unk4C;			// 4C
-	uint32_t					unk50;			// 50
-	TESRecipeCategory* category;		// 54
-	TESRecipeCategory* subCategory;	// 58
-};
-
-#ifdef GAME
-static_assert(sizeof(TESRecipe) == 0x5C);
-#else
-static_assert(sizeof(TESRecipe) == 0x74);
-#endif
-
-class TESLoadScreenType : public TESForm {
-public:
-	TESLoadScreenType();
-	~TESLoadScreenType();
-
-	struct floatRGB {
-		float R, G, B;
-	};
-
-	uint32_t			type;						// 018
-	// Data 1
-	uint32_t			x;							// 01C
-	uint32_t			y;							// 020
-	uint32_t			width;						// 024
-	uint32_t			height;						// 028
-	uint32_t			orientation;				// 02C
-	uint32_t			font1;						// 030
-	floatRGB		fontcolor1;					// 034
-	uint32_t			justification;				// 040
-	uint32_t			unk044[(0x58 - 0x44) >> 2];	// 044
-	// Data 2
-	uint32_t			font2;						// 058
-	floatRGB		fontcolor2;					// 05C
-	uint32_t			unk068;						// 068
-	uint32_t			stats;						// 06C
-};
-
 // TESLoadScreen (3C)
 class TESLoadScreen : public TESForm {
 public:
@@ -3245,76 +3168,6 @@ public:
 	}
 };
 
-class TESCasino : public TESForm {
-public:
-	TESCasino();
-	~TESCasino();
-
-	TESFullName				fullName;
-	TESModelTextureSwap		chip1;
-	TESModelTextureSwap		chip5;
-	TESModelTextureSwap		chip10;
-	TESModelTextureSwap		chip25;
-	TESModelTextureSwap		chip100;
-	TESModelTextureSwap		chip500;
-	TESModelTextureSwap		chipRoulette;
-	TESModelTextureSwap		slotMachine;
-	TESModelTextureSwap		blackjackTable;
-	TESModelTextureSwap		rouletteTable;
-	TESIcon					slotReel[7];
-	TESTexture				blackjackDeck[4];
-	float					shufflePercent;
-	float					blackjackPayout;
-	uint32_t					reelStops[7];			// the values here must total 14
-	uint32_t					numDecks;
-	uint32_t					maxWinnings;
-	uint32_t					currencyRefID;			// ID, not form pointer
-	uint32_t					winningsQuestRefID;		// ID, not form pointer
-	uint32_t					flags;					// 1: dealer stand on soft 17 (no other flags)
-	uint32_t					unk220[2];
-};
-
-// 7C
-class TESChallenge : public TESForm {
-public:
-	TESChallenge();
-	~TESChallenge();
-
-	enum {
-		kFlag_StartDisabled = 1 << 0,
-		kFlag_Recurring = 1 << 1,
-		kFlag_ShowZeroProgress = 1 << 2
-	};
-
-	struct ChallengeData	// 018
-	{
-		uint32_t		type;			// needs enumeration
-		uint32_t		threshold;
-		uint32_t		flags;
-		uint32_t		interval;
-		uint16_t		value1;			// these fields change based on challenge type
-		uint16_t		value2;			// might need unions...
-		uint32_t		value3;
-	};
-
-	TESFullName				fullName;		// 18
-	TESDescription			description;	// 24
-	TESScriptableForm		scriptable;		// 2C
-	TESIcon					icon;			// 38
-	BGSMessageIcon			msgIcon;		// 44
-
-	ChallengeData			data;			// 54
-	uint32_t					unk6C;			// 6C
-	uint32_t					unk70;			// 70
-	TESForm* SNAM;			// 74
-	TESForm* XNAM;			// 78
-};
-#ifdef GAME
-static_assert(sizeof(TESChallenge) == 0x7C);
-#else
-static_assert(sizeof(TESChallenge) == 0xB8);
-#endif
-
 // 74
 class BGSBodyPartData : public TESForm {
 public:
@@ -3352,76 +3205,6 @@ public:
 static_assert(sizeof(BGSBodyPartData) == 0x74);
 #else
 static_assert(sizeof(BGSBodyPartData) == 0x60);
-#endif
-
-class MediaSet;
-
-// B8
-class MediaLocationController : public TESForm, public TESFullName {
-public:
-	MediaLocationController();
-	~MediaLocationController();
-
-	struct ALIGN4 _Flags {
-		enum Flags {
-			DEAD_REP_MASK		= 0xF,
-			LOOP_MASK			= 0x3,
-
-			DEAD_REP_POS		= 0,
-			LOOP_POS			= 4,
-
-			DEFAULT_TIME 		= 1u << 6,
-
-			IGNORE_ACTOR_COUNT	= 1u << 8,
-		};
-
-		uint8_t	eDeadRep			: 4;
-		uint8_t	eLoop				: 2;
-		bool	bDefaultTime		: 1;
-		bool						: 1;
-		bool	bIgnoreActorCount	: 1; // Added by JohnnyGuitar
-	};
-	using Flags = _Flags::Flags;
-
-#ifdef GAME
-	uint32_t				uiLocationDelay;
-	uint32_t				uiLayerTime;
-	uint32_t				uiLoopTime;
-	uint32_t				uiMediaStartTime;
-	bool					bIsActive;
-	bool					bInTension;
-	bool					bInCombat;
-	bool					bIsDay;
-	bool					bIsConditional;
-	float					fCurrentPlayerRadius;
-	uint32_t				uiFoundHostileActors; // Both based on player's compass targets 
-	uint32_t				uiFoundFactionActors;
-	uint32_t				eCurrentFactionReaction;
-	int8_t					cCurrentLayer;
-	MediaSet*				pCurrentMediaSet;
-#endif
-	TESFullName				kMediaLocationControllerName;
-	TESFaction*				pFaction;
-	uint32_t				eFactionConditional;
-	TESObjectREFR*			pAudioMarker;
-	Bitfield<_Flags>		uiFlags;
-	float					fLayerTwoPercent;
-	float					fLayerThreePercent;
-	float					fRetriggerDelay;
-	float					fLocationDelay;
-	uint32_t				uiDayStart;
-	uint32_t				uiNightStart;
-	BSSimpleList<MediaSet*> kConditionalNeutralSets;
-	BSSimpleList<MediaSet*> kConditionalAllySets;
-	BSSimpleList<MediaSet*> kConditionalFriendSets;
-	BSSimpleList<MediaSet*> kConditionalEnemySets;
-	BSSimpleList<MediaSet*> kLocationSets;
-	BSSimpleList<MediaSet*> kBattleSets;
-};
-#ifdef GAME
-ASSERT_SIZE(MediaLocationController, 0xB8);
-#else
-ASSERT_SIZE(MediaLocationController, 0x9C);
 #endif
 
 // BGSCameraPath (38)
@@ -3660,42 +3443,6 @@ public:
 static_assert(sizeof(TESEffectShader) == 0x170);
 #else
 static_assert(sizeof(TESEffectShader) == 0x1B4);
-#endif
-
-class MediaSet : public TESForm, public TESFullName {
-public:
-	MediaSet();
-	~MediaSet();
-	struct MediaSetData {
-		BSString filepath; // NAM2 NAM3 NAM4 NAM5 NAM6 NAM7
-		float dB; // NAM8 NAM9 NAM0 ANAM BNAM CNAM
-		float boundary; // JNAM KNAM LNAM MNAM NNAM ONAM
-	};
-#ifdef GAME
-	uint32_t uiMinLayerUpdate;
-	uint32_t uiSeekTime;
-	uint32_t uiLoopUpdate;
-	bool bStarted;
-	bool bInCombat;
-	bool bInTension;
-	bool bIsDay;
-#endif
-	uint8_t ucCurrentLayer;
-	TESFullName kMediaSetName;
-	uint32_t uiType;
-	MediaSetData data[6];
-	uint32_t flags; //PNAM
-	float DNAM;
-	float ENAM;
-	float FNAM;
-	float GNAM;
-	TESSound* HNAM;
-	TESSound* INAM;
-};
-#ifdef GAME
-static_assert(sizeof(MediaSet) == 0xC4);
-#else
-static_assert(sizeof(MediaSet) == 0xC8);
 #endif
 
 extern TESForm* __fastcall GetTESForm(const TESForm* apForm);
