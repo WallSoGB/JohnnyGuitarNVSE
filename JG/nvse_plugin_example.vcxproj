@@ -477,6 +477,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClCompile Include="internal\Game\Bethesda\BGSDestructibleObjectForm.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSEncounterZone.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSEquipType.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\BGSHeadPart.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSIdleCollection.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSImpactDataSet.cpp" />
     <ClCompile Include="internal\Game\Bethesda\BGSListForm.cpp" />
@@ -576,6 +577,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClCompile Include="internal\Game\Bethesda\TESAttributes.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESBipedModelForm.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESBoundObject.cpp" />
+    <ClCompile Include="internal\Game\Bethesda\TESClass.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESCondition.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESContainer.cpp" />
     <ClCompile Include="internal\Game\Bethesda\TESConversationData.cpp" />
@@ -913,6 +915,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\BGSEntryPointFunctionDataTwoValue.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSEntryPointPerkEntry.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSEquipType.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\BGSHeadPart.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSIdleCollection.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSIdleMarker.hpp" />
     <ClInclude Include="internal\Game\Bethesda\BGSImpactDataSet.hpp" />
@@ -1119,6 +1122,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\TESBoundAnimObject.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESBoundObject.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESChildCell.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESClass.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESCondition.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESContainer.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESConversationData.hpp" />
@@ -1132,6 +1136,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\TESForm.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESFullName.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESGlobal.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESGrass.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESHair.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESHavokUtilities.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESHealthForm.hpp" />
@@ -1176,6 +1181,7 @@ copy "$(TargetDir)$(TargetName).pdb" "C:\Symbols\$(TargetName).pdb"
     <ClInclude Include="internal\Game\Bethesda\TESRegionList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESResponse.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESScriptableForm.hpp" />
+    <ClInclude Include="internal\Game\Bethesda\TESSkill.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESSoundFile.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESSpellList.hpp" />
     <ClInclude Include="internal\Game\Bethesda\TESTexture.hpp" />

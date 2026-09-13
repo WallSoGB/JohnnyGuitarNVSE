@@ -370,6 +370,60 @@ struct _FightReaction {
 };
 using FIGHT_REACTION = _FightReaction::Type;
 
+struct _SkillSpecialization {
+	enum Type {
+		NONE	= -1,
+		COMBAT	= 0,
+		MAGIC	= 1,
+		STEALTH	= 2,
+		COUNT
+	};
+};
+using SKILL_SPECIALIZATION = _SkillSpecialization::Type;
+
+struct ALIGN4 _ServiceFlags {
+	enum Flags : uint32_t {
+		WEAPONS		= 1u << 0,
+		ARMOR		= 1u << 1,
+		ALCOHOL		= 1u << 2,
+		BOOKS		= 1u << 3,
+		FOOD		= 1u << 4,
+		CHEMS		= 1u << 5,
+		STIMPAKS	= 1u << 6,
+		LIGHTS		= 1u << 7,
+		APPARATUS	= 1u << 8,
+
+		MISC		= 1u << 10,
+		SPELLS		= 1u << 11,
+		MAGIC_ITEMS	= 1u << 12,
+		POTIONS		= 1u << 13,
+		TRAINING	= 1u << 14,
+
+		RECHARGE	= 1u << 16,
+		REPAIR		= 1u << 17,
+	};
+
+	bool bWeapons		: 1;
+	bool bArmor			: 1;
+	bool bAlcohol		: 1;
+	bool bBooks			: 1;
+	bool bFood			: 1;
+	bool bChems			: 1;
+	bool bStimpaks		: 1;
+	bool bLights		: 1;
+	bool bApparatus		: 1;
+	bool 				: 1;
+	bool bMisc			: 1;
+	bool bSpells		: 1;
+	bool bMagicItems	: 1;
+	bool bPotions		: 1;
+	bool bTraining		: 1;
+	bool 				: 1;
+	bool bRecharge		: 1;
+	bool bRepair		: 1;
+};
+using SERVICE_FLAGS = _ServiceFlags::Flags;
+
 #pragma endregion
 
 #pragma region Packages

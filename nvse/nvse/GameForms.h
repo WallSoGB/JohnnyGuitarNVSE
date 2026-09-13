@@ -66,6 +66,7 @@
 #include "Bethesda/BGSDebris.hpp"
 #include "Bethesda/BGSDefaultObjectManager.hpp"
 #include "Bethesda/BGSEncounterZone.hpp"
+#include "Bethesda/BGSHeadPart.hpp"
 #include "Bethesda/BGSIdleMarker.hpp"
 #include "Bethesda/BGSImpactDataSet.hpp"
 #include "Bethesda/BGSListForm.hpp"
@@ -82,10 +83,12 @@
 #include "Bethesda/MagicItemForm.hpp"
 #include "Bethesda/Script.hpp"
 #include "Bethesda/SpellItem.hpp"
+#include "Bethesda/TESClass.hpp"
 #include "Bethesda/TESCreature.hpp"
 #include "Bethesda/TESEyes.hpp"
 #include "Bethesda/TESFaction.hpp"
 #include "Bethesda/TESGlobal.hpp"
+#include "Bethesda/TESGrass.hpp"
 #include "Bethesda/TESHair.hpp"
 #include "Bethesda/TESIdleForm.hpp"
 #include "Bethesda/TESKey.hpp"
@@ -103,6 +106,7 @@
 #include "Bethesda/TESObjectMISC.hpp"
 #include "Bethesda/TESObjectSTAT.hpp"
 #include "Bethesda/TESQuest.hpp"
+#include "Bethesda/TESSkill.hpp"
 #include "Bethesda/TESTopic.hpp"
 #include "Bethesda/TESTopicInfo.hpp"
 #include "Obsidian/BGSDehydrationStage.hpp"
@@ -410,11 +414,6 @@ class TESLeveledList;
 class TESImageSpaceModifier;
 class QueuedFile;
 
-struct PermanentClonedForm {
-	uint32_t orgRefID;
-	uint32_t cloneRefID;
-};
-
 // 020
 class BGSTextureSet;
 
@@ -484,78 +483,6 @@ public:
 static_assert(sizeof(BGSTextureSet) == 0xA0);
 #else
 static_assert(sizeof(BGSTextureSet) == 0x10C);
-#endif
-
-// 60
-class TESClass : public TESForm {
-public:
-	TESClass();
-	~TESClass();
-
-	enum {
-		kFlag_Playable = 0x00000001,
-		kFlag_Guard = 0x00000002,
-	};
-
-	enum {
-		kService_Weapons = 0x00000001,
-		kService_Armor = 0x00000002,
-		kService_Clothing = 0x00000004,
-		kService_Books = 0x00000008,
-		kService_Food = 0x00000010,
-		kService_Chems = 0x00000020,
-		kService_Stimpacks = 0x00000040,
-		kService_Lights = 0x00000080,	// ??
-		kService_Misc = 0x00000400,
-		kService_Potions = 0x00002000,	// probably deprecated
-		kService_Training = 0x00004000,
-		kService_Recharge = 0x00010000,
-		kService_Repair = 0x00020000,
-	};
-
-	TESFullName		fullName;		// 18
-	TESDescription	description;	// 24
-	TESTexture		texture;		// 2C
-	TESAttributes	attributes;		// 38
-
-	// corresponds to DATA chunk
-	uint32_t			tagSkills[4];	// 44
-	uint32_t			classFlags;		// 54
-	uint32_t			services;		// 58
-	uint8_t			teaches;		// 5C
-	uint8_t			trainingLevel;	// 5D
-	uint8_t			pad5E[2];		// 5E
-};
-
-#ifdef GAME
-static_assert(sizeof(TESClass) == 0x60);
-#else
-static_assert(sizeof(TESClass) == 0x8C);
-#endif
-
-// 50
-class BGSHeadPart : public TESForm {
-public:
-	BGSHeadPart();
-	~BGSHeadPart();
-
-	enum {
-		kFlag_Playable = 0x01,
-	};
-
-	TESFullName			fullName;	// 18
-	TESModelTextureSwap	texSwap;	// 24
-
-	uint8_t				headFlags;	// 44
-	uint8_t				pad45[3];	// 45
-	uint32_t				unk48;		// 48
-	uint32_t				unk4C;		// 4C
-};
-
-#ifdef GAME
-static_assert(sizeof(BGSHeadPart) == 0x50);
-#else
-static_assert(sizeof(BGSHeadPart) == 0x74);
 #endif
 
 // 4E4 - incomplete
@@ -682,59 +609,6 @@ public:
 	uint32_t	unk34;	// 34
 	uint32_t	unk38;	// 38
 };
-
-// 60
-class TESSkill : public TESForm, public TESDescription, public TESTexture {
-public:
-	TESSkill();
-	~TESSkill();
-
-	struct Data {
-		uint32_t	eSkill;
-		uint32_t	eAttribute;
-		uint32_t	eSpecialization;
-		float		fUseValues[2];
-	};
-
-	Data kData;
-	TESDescription kDescriptions[4];
-};
-
-#ifdef GAME
-static_assert(sizeof(TESSkill) == 0x60);
-#else
-static_assert(sizeof(TESSkill) == 0xAC);
-#endif
-
-// 68
-class TESGrass : public TESBoundObject {
-public:
-	TESGrass();
-	~TESGrass();
-
-	TESModel		model;					// 30
-
-	uint8_t			density;				// 48
-	uint8_t			minSlope;				// 49
-	uint8_t			maxSlope;				// 4A
-	uint8_t			pad4B;					// 4B
-	uint16_t			unitFromWaterAmount;	// 4C
-	uint8_t			pad4E[2];				// 4E
-	uint8_t			unitFromWaterType;		// 50
-	uint8_t			pad51[3];				// 51
-	float			positionRange;			// 54
-	float			heightRange;			// 58
-	float			colorRange;				// 5C
-	float			wavePeriod;				// 60
-	uint8_t			flags;					// 64
-	uint8_t			pad65[3];				// 65
-};
-
-#ifdef GAME
-static_assert(sizeof(TESGrass) == 0x68);
-#else
-static_assert(sizeof(TESGrass) == 0x98);
-#endif
 
 // 28
 class TESLandTexture : public TESForm {
