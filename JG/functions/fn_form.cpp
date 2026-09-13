@@ -1312,20 +1312,20 @@ bool Cmd_SetWeaponWorldModelPath_Execute(COMMAND_ARGS) {
 
 bool Cmd_SetProjectileSound_Execute(COMMAND_ARGS) {
 	*result = 0;
-	BGSProjectile* projectile = nullptr;
-	TESSound* sound = nullptr;
-	int soundID = 0;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &projectile, &soundID, &sound) && projectile && IS_TYPE(projectile, BGSProjectile) && sound && IS_TYPE(sound, TESSound) && soundID <= 3) {
+	BGSProjectile* pProjectile = nullptr;
+	TESSound* pSound = nullptr;
+	int uiSoundType = 0;
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pProjectile, &uiSoundType, &pSound) && pProjectile && IS_TYPE(pProjectile, BGSProjectile) && pSound && IS_TYPE(pSound, TESSound) && uiSoundType <= 3) {
 		*result = 1;
-		switch (soundID) {
+		switch (uiSoundType) {
 		case 1:
-			projectile->soundProjectile = sound;
+			pProjectile->SetActiveSound(pSound);
 			break;
 		case 2:
-			projectile->soundCountDown = sound;
+			pProjectile->SetCountdownSound(pSound);
 			break;
 		case 3:
-			projectile->soundDisable = sound;
+			pProjectile->SetDeactivateSound(pSound);
 			break;
 		default:
 			*result = 0;
@@ -2022,7 +2022,7 @@ bool Cmd_GetHotkeySlot_Execute(COMMAND_ARGS)
 bool Cmd_GetMineArmedEx_Execute(COMMAND_ARGS)
 {
 	if (GrenadeProjectile* projectile = (GrenadeProjectile*)thisObj; IS_ID(projectile, GrenadeProjectile) && !(projectile->projFlags & 0x200) &&
-		((((BGSProjectile*)thisObj->baseForm)->projFlags & 0x426) == 0x26))
+		(((BGSProjectile*)thisObj->baseForm)->GetData().uiFlags.Get(0x426) == 0x26))
 		*result = 1;
 	return true;
 }
@@ -3374,8 +3374,8 @@ bool Cmd_SetExternalEmittanceSource_Execute(COMMAND_ARGS) {
 bool Cmd_GetProjectileMuzzleFlashLight_Execute(COMMAND_ARGS) {
 	*result = 0;
 	BGSProjectile* pProjectile = nullptr;
-	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pProjectile) && pProjectile && IS_TYPE(pProjectile, BGSProjectile) && pProjectile->lightMuzzleFlash) {
-		*reinterpret_cast<uint32_t*>(result) = pProjectile->lightMuzzleFlash->GetFormID();
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &pProjectile) && pProjectile && IS_TYPE(pProjectile, BGSProjectile) && pProjectile->GetMuzzleFlashLight()) {
+		*reinterpret_cast<uint32_t*>(result) = pProjectile->GetMuzzleFlashLight()->GetFormID();
 	}
 	return true;
 }
@@ -3388,7 +3388,7 @@ bool Cmd_SetProjectileMuzzleFlashLight_Execute(COMMAND_ARGS) {
 		if (pLight && !IS_TYPE(pLight, TESObjectLIGH))
 			return true;
 
-		pProjectile->lightMuzzleFlash = pLight;
+		pProjectile->SetMuzzleFlashLight(pLight);
 		*result = 1;
 	}
 	return true;

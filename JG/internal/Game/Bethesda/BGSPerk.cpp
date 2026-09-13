@@ -1,4 +1,5 @@
 #include "BGSPerk.hpp"
+#include "BGSPerkEntry.hpp"
 
 // GAME - 0x5D4EE0
 uint8_t BGSPerk::GetNumRanks() const {

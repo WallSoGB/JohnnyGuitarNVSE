@@ -811,6 +811,24 @@
     <ClCompile Include="internal\Game\Bethesda\BGSHeadPart.cpp">
       <Filter>internal\Game\Bethesda</Filter>
     </ClCompile>
+    <ClCompile Include="internal\Game\Bethesda\BGSAcousticSpace.cpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Bethesda\BGSMovableStatic.cpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Bethesda\TESFurniture.cpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Bethesda\TESAmmo.cpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Bethesda\TESLandTexture.cpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClCompile>
+    <ClCompile Include="internal\Game\Bethesda\BGSProjectile.cpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -2104,6 +2122,33 @@
     <ClInclude Include="internal\Game\Bethesda\BGSHeadPart.hpp">
       <Filter>internal\Game\Bethesda</Filter>
     </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\BGSAcousticSpace.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\TESLandTexture.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\BGSMovableStatic.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\BGSStaticCollection.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\BSMap.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\BSMapBase.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\TESFurniture.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\TESAmmo.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\Game\Bethesda\BGSProjectile.hpp">
+      <Filter>internal\Game\Bethesda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
@@ -2159,6 +2204,12 @@
       <Filter>internal\Game\Bethesda</Filter>
     </None>
     <None Include="internal\Game\Bethesda\BSTCommonMessageQueue.inl">
+      <Filter>internal\Game\Bethesda</Filter>
+    </None>
+    <None Include="internal\Game\Bethesda\BSMap.inl">
+      <Filter>internal\Game\Bethesda</Filter>
+    </None>
+    <None Include="internal\Game\Bethesda\BSMapBase.inl">
       <Filter>internal\Game\Bethesda</Filter>
     </None>
   </ItemGroup>

@@ -868,7 +868,7 @@ bool Cmd_SendStealingAlarm_Execute(COMMAND_ARGS) {
 	*result = 0;
 	if (thisObj->IsActor() && ExtractArgsEx(EXTRACT_ARGS_EX, &container, &checkItems) && container) {
 		if (checkItems) {
-			TESForm* containerOwner = ThisCall<TESForm*>(0x567790, container); // TESObjectREFR::GetOwner
+			TESForm* containerOwner = container->GetOwner();
 			if (!containerOwner) return true;
 			ExtraContainerChanges* xChanges = thisObj->extraDataList.GetExtraData<ExtraContainerChanges>();
 			if (!xChanges || !xChanges->pChanges || !xChanges->pChanges->pItems)
@@ -898,7 +898,7 @@ bool Cmd_SendStealingAlarm_Execute(COMMAND_ARGS) {
 			}
 		}
 		else {
-			TESForm* owner = ThisCall<TESForm*>(0x567790, container); // TESObjectREFR::GetOwner
+			TESForm* owner = container->GetOwner();
 			ThisCall(0x8BFA40, thisObj, container, nullptr, nullptr, 1, owner); // Actor::StealAlarm
 			*result = 1;
 		}
@@ -911,7 +911,7 @@ bool Cmd_GetCalculatedSpread_Execute(COMMAND_ARGS) {
 	Actor* actor = static_cast<Actor*>(thisObj);
 	ItemChange* weapInfo = actor->baseProcess->GetCurrentWeapon();
 	if (weapInfo && weapInfo->pObject) {
-		bool hasDecreaseSpreadEffect = ThisCall<bool>(0x4BDA70, weapInfo, 3);
+		bool hasDecreaseSpreadEffect = weapInfo->HasModEffectActive(3);
 		double minSpread = ThisCall<double>(0x524B80, weapInfo->pObject, hasDecreaseSpreadEffect);
 		double weapSpread = ThisCall<float>(0x524BE0, weapInfo->pObject, hasDecreaseSpreadEffect);
 		double spread = ThisCall<double>(0x8B0DD0, actor, 1);
@@ -919,7 +919,7 @@ bool Cmd_GetCalculatedSpread_Execute(COMMAND_ARGS) {
 		float totalSpread = (weapSpread * spread + minSpread) * 0.01745329238474369;
 
 		TESAmmo* eqAmmo = ThisCall<TESAmmo*>(0x525980, weapInfo->pObject, static_cast<MobileObject*>(actor));
-		totalSpread = CdeclCall<float>(0x59A030, 3, (eqAmmo ? &eqAmmo->effectList : nullptr), totalSpread);
+		totalSpread = TESAmmoEffect::ApplyAmmoEffect(AMMO_EFFECT_TYPE::SPREAD, (eqAmmo ? eqAmmo->GetAmmoEffectList() : nullptr), totalSpread);
 
 		double spreadPenalty = ThisCall<double>(0x8B0DD0, actor, 2);
 
@@ -928,7 +928,7 @@ bool Cmd_GetCalculatedSpread_Execute(COMMAND_ARGS) {
 		float noIdea = ThisCall<HighProcess*>(0x8D8520, actor)->angle1D0;
 		totalSpread = totalSpread + noIdea;
 
-		bool hasSplitBeamEffect = ThisCall<bool>(0x4BDA70, weapInfo, 0xC);
+		bool hasSplitBeamEffect = weapInfo->HasModEffectActive(0xC);
 		if (hasSplitBeamEffect) {
 			totalSpread *= ThisCall<float>(0x4BCF60, weapInfo->pObject, 0xC, 1);
 		}

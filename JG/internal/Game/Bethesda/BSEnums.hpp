@@ -2001,3 +2001,41 @@ struct _CreatureSoundType {
 	};
 };
 using CREATURE_SOUND_TYPE = _CreatureSoundType::Type;
+
+struct _CellEnvironmentType {
+	enum Type {
+		NONE				= 0,
+		DEFAULT				= 1,
+		GENERIC				= 2,
+		PADDED_CELL			= 3,
+		ROOM				= 4,
+		BATHROOM			= 5,
+		LIVING_ROOM			= 6,
+		STONE_ROOM			= 7,
+		AUDITORIUM			= 8,
+		CONCERT_HALL		= 9,
+		CAVE				= 10,
+		ARENA				= 11,
+		HANGAR				= 12,
+		CARPETED_HALLWAY	= 13,
+		HALLWAY				= 14,
+		STONE_CORRIDOR		= 15,
+		ALLEY				= 16,
+		FOREST				= 17,
+		CITY				= 18,
+		MOUNTAINS			= 19,
+		QUARRY				= 20,
+		PLAIN				= 21,
+		PARKING_LOT			= 22,
+		SEWER_PIPE			= 23,
+		UNDERWATER			= 24,
+		SMALL_ROOM			= 25,
+		MEDIUM_ROOM			= 26,
+		LARGE_ROOM			= 27,
+		MEDIUM_HALL			= 28,
+		LARGE_HALL			= 29,
+		PLATE				= 30,
+		COUNT,
+	};
+};
+using CELL_ENVIRONMENT_TYPE = _CellEnvironmentType::Type;

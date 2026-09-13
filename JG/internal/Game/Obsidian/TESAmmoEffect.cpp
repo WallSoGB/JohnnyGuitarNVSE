@@ -34,7 +34,7 @@ void TESAmmoEffect::BuildMenuString(char* apBuffer, uint32_t auiBufferSize) cons
 }
 
 // GAME - 0x59A030
-float TESAmmoEffect::ApplyAmmoEffect(uint32_t aeType, BSSimpleList<TESAmmoEffect*>* apEffects, float afDamage) {
+float TESAmmoEffect::ApplyAmmoEffect(AMMO_EFFECT_TYPE aeType, BSSimpleList<TESAmmoEffect*>* apEffects, float afDamage) {
 	return CdeclCall<float>(0x59A030, aeType, apEffects, afDamage);
 }
 #endif

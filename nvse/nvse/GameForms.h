@@ -61,6 +61,7 @@
 // Forms themselves
 #include "Bethesda/ActorValueInfo.hpp"
 #include "Bethesda/AlchemyItem.hpp"
+#include "Bethesda/BGSAcousticSpace.hpp"
 #include "Bethesda/BGSAddonNode.hpp"
 #include "Bethesda/BGSCameraShot.hpp"
 #include "Bethesda/BGSDebris.hpp"
@@ -72,26 +73,32 @@
 #include "Bethesda/BGSListForm.hpp"
 #include "Bethesda/BGSMenuIcon.hpp"
 #include "Bethesda/BGSMessage.hpp"
+#include "Bethesda/BGSMovableStatic.hpp"
 #include "Bethesda/BGSMusicType.hpp"
 #include "Bethesda/BGSNote.hpp"
 #include "Bethesda/BGSPerk.hpp"
 #include "Bethesda/BGSPlaceableWater.hpp"
+#include "Bethesda/BGSProjectile.hpp"
 #include "Bethesda/BGSRadiationStage.hpp"
+#include "Bethesda/BGSStaticCollection.hpp"
 #include "Bethesda/BGSVoiceType.hpp"
 #include "Bethesda/EffectSetting.hpp"
 #include "Bethesda/EnchantmentItem.hpp"
 #include "Bethesda/MagicItemForm.hpp"
 #include "Bethesda/Script.hpp"
 #include "Bethesda/SpellItem.hpp"
+#include "Bethesda/TESAmmo.hpp"
 #include "Bethesda/TESClass.hpp"
 #include "Bethesda/TESCreature.hpp"
 #include "Bethesda/TESEyes.hpp"
 #include "Bethesda/TESFaction.hpp"
+#include "Bethesda/TESFurniture.hpp"
 #include "Bethesda/TESGlobal.hpp"
 #include "Bethesda/TESGrass.hpp"
 #include "Bethesda/TESHair.hpp"
 #include "Bethesda/TESIdleForm.hpp"
 #include "Bethesda/TESKey.hpp"
+#include "Bethesda/TESLandTexture.hpp"
 #include "Bethesda/TESLevCharacter.hpp"
 #include "Bethesda/TESLevCreature.hpp"
 #include "Bethesda/TESLevItem.hpp"
@@ -599,41 +606,6 @@ public:
 	}
 };
 
-// 3C
-class BGSAcousticSpace : public TESBoundObject {
-public:
-	BGSAcousticSpace();
-	~BGSAcousticSpace();
-
-	uint32_t	unk30;	// 30
-	uint32_t	unk34;	// 34
-	uint32_t	unk38;	// 38
-};
-
-// 28
-class TESLandTexture : public TESForm {
-public:
-	TESLandTexture();
-	~TESLandTexture();
-
-	BGSTextureSet* textureSet;		// 18
-	uint8_t			materialType;		// 1C
-	uint8_t			friction;			// 1D
-	uint8_t			restitution;		// 1E
-	uint8_t			specularExponent;	// 1F
-	tList<TESGrass>	grasses;			// 20
-#ifdef EDITOR
-	BSSimpleList<void*> unk3C;
-	uint32_t			unk44;
-#endif
-};
-
-#ifdef GAME
-static_assert(sizeof(TESLandTexture) == 0x28);
-#else
-static_assert(sizeof(TESLandTexture) == 0x48);
-#endif
-
 // 98
 class BGSTalkingActivator : public TESObjectACTI {
 public:
@@ -695,20 +667,11 @@ class IngredientItem;
 
 class NiPointLight;
 
-// BGSStaticCollection (50)
-class BGSStaticCollection;
-
-// BGSMovableStatic (6C)
-class BGSMovableStatic;
-
 // TESObjectTREE (94)
 class TESObjectTREE;
 
 // TESFlora (90)
 class TESFlora;
-
-// TESFurniture (88)
-class TESFurniture;
 
 // 388
 class TESObjectWEAP : public TESBoundObject {
@@ -1033,53 +996,6 @@ static_assert(sizeof(TESObjectWEAP) == 0x388);
 static_assert(sizeof(TESObjectWEAP) == 0x470);
 #endif
 
-// DC
-class TESAmmo : public TESBoundObject {
-public:
-	TESAmmo();
-	~TESAmmo();
-
-	enum eAmmoFlags {
-		kFlags_IgnoreWeapResistance = 1,
-		kFlags_NonPlayable = 2,
-	};
-
-	// bases
-	TESFullName					fullName;				// 030
-	TESModelTextureSwap			model;					// 03C
-	TESIcon						icon;					// 05C
-	BGSMessageIcon				messageIcon;			// 068
-	TESValueForm				value;					// 078
-	BGSClipRoundsForm			clipRounds;				// 080
-	BGSDestructibleObjectForm	destructible;			// 088
-	BGSPickupPutdownSounds		pickupPutdownsounds;	// 090
-	TESScriptableForm			scriptable;				// 09C
-
-	float						speed;					// 0A8
-	uint32_t						flags;					// 0AC
-	uint32_t						projPerShot;			// 0B0
-	BGSProjectile*				projectile;				// 0B4
-	float						weight;					// 0B8
-	TESObjectMISC*				casing;					// 0BC
-	float						ammoPercentConsumed;	// 0C0
-	BSString					shortName;				// 0C4
-	BSString					abbreviation;			// 0CC
-	tList<TESAmmoEffect>		effectList;				// 0D4
-
-	bool IsNonPlayable() { return (flags & kFlags_NonPlayable) == kFlags_NonPlayable; }
-	bool IsPlayable() { return !IsNonPlayable(); }
-	void SetPlayable(bool doset) { if (doset) flags &= ~kFlags_NonPlayable; else flags |= kFlags_NonPlayable; }
-
-	void GetEffectNames(char* apBuffer, uint32_t auiBufferSize) const {
-		ThisCall(0x503A70, this, apBuffer, auiBufferSize);
-	}
-};
-#ifdef GAME
-static_assert(sizeof(TESAmmo) == 0xDC);
-#else
-static_assert(sizeof(TESAmmo) == 0x130);
-#endif
-
 class BSFaceGenNiNode;
 
 // 2B0
@@ -1280,63 +1196,6 @@ static_assert(sizeof(TESNPC) == 0x20C);
 #else
 static_assert(sizeof(TESNPC) == 0x234);
 #endif
-
-// C0
-class BGSProjectile : public TESBoundObject {
-public:
-	BGSProjectile();
-	~BGSProjectile();
-
-	enum {
-		kFlags_Hitscan = 0x1,
-		kFlags_Explosion = 0x2,
-		kFlags_AltTrigger = 0x4,
-		kFlags_MuzzleFlash = 0x8,
-		//								0x10,
-		kFlags_CanBeDisabled = 0x20,
-		kFlags_CanBePicked = 0x40,
-		kFlags_Supersonic = 0x80,
-		kFlags_PinsLimbs = 0x100,
-		kFlags_PassSmallTransparent = 0x200,
-		kFlags_Detonates = 0x400,
-		kFlags_Rotation = 0x800,
-	};
-
-	TESFullName						fullName;			// 30
-	TESModel						model;				// 3C
-	BGSPreloadable					preloadable;		// 54
-	BGSDestructibleObjectForm		destructible;		// 58
-
-	uint16_t							projFlags;			// 60
-	uint16_t							type;				// 62
-	float							gravity;			// 64
-	float							speed;				// 68
-	float							range;				// 6C
-	TESObjectLIGH* lightProjectile;	// 70
-	TESObjectLIGH* lightMuzzleFlash;	// 74
-	float							tracerChance;		// 78
-	float							altProximity;		// 7C
-	float							altTimer;			// 80
-	BGSExplosion* explosion;			// 84
-	TESSound* soundProjectile;	// 88
-	float							flashDuration;		// 8C
-	float							fadeDuration;		// 90
-	float							impactForce;		// 94
-	TESSound* soundCountDown;	// 98
-	TESSound* soundDisable;		// 9C
-	TESObjectWEAP* defaultWeapSrc;	// A0
-	float							rotationX;			// A4
-	float							rotationY;			// A8
-	float							rotationZ;			// AC
-	float							bouncyMult;			// B0
-	TESModel						muzzleFlash;		// B4
-	uint8_t							soundLevel;			// CC
-
-	void SetFlag(uint32_t pFlag, bool bEnable) {
-		if (bEnable) projFlags |= pFlag;
-		else projFlags &= ~pFlag;
-	}
-};
 
 // 36C
 class TESWeather : public TESForm {

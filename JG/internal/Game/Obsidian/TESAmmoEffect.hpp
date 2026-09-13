@@ -30,7 +30,7 @@ public:
 #ifdef GAME
 	void BuildMenuString(char* apBuffer, uint32_t auiBufferSize) const;
 
-	static float ApplyAmmoEffect(uint32_t aeType, BSSimpleList<TESAmmoEffect*>* apEffects, float afDamage);
+	static float ApplyAmmoEffect(AMMO_EFFECT_TYPE aeType, BSSimpleList<TESAmmoEffect*>* apEffects, float afDamage);
 #endif
 };
 
