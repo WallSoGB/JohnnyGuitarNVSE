@@ -722,3 +722,63 @@ bool Cmd_StopIdleLoop_Execute(COMMAND_ARGS) {
 	}
 	return true;
 }
+
+bool Cmd_IsObjectUnderwater_Execute(COMMAND_ARGS) {
+	*result = 0;
+	const bool bConsolePrint = Script::GetConsoleOuput();
+	const char cObjectName[MAX_PATH] = {};
+	if (ExtractArgsEx(EXTRACT_ARGS_EX, &cObjectName)) {
+		NiAVObject* pRef3D = ScriptUtils::GetReferenceScene(thisObj, false);
+		if (!pRef3D)
+			return true;
+
+		TESObjectCELL* pParentCell = thisObj->GetParentCell();
+		if (!pParentCell)
+			return true;
+
+		NiAVObject* pObject = pRef3D;
+		if (cObjectName[0]) {
+			pObject = BSUtilities::GetObjectByName(pRef3D, cObjectName);
+			if (!pObject) [[unlikely]] {
+				if (bConsolePrint)
+					Interface::PrintLine("IsObjectUnderwater >> %s", "Object not found");
+				return true;
+			}
+		}
+
+		const TESWaterSystem* pWaterMgr = TES::GetSingleton()->GetWaterSystem();
+		NiTListIterator kIter = pWaterMgr->kPlaceableWaterGroups.GetHeadPos();
+		while (kIter) {
+			const PlaceableWaterGroup* pWaterGroup = pWaterMgr->kPlaceableWaterGroups.GetNext(kIter);
+			NiTListIterator kPlaneIter = pWaterGroup->kPlaceableWaters.GetHeadPos();
+			while (kPlaneIter) {
+				const TESObjectREFR* pPlane = pWaterGroup->kPlaceableWaters.GetNext(kPlaneIter);
+				if (!pPlane) [[unlikely]]
+					continue;
+
+				const NiAVObject* pWater3D = pPlane->Get3D();
+				if (!pWater3D) [[unlikely]]
+					continue;
+
+				const NiBound& rWaterBound = pWater3D->GetWorldBound();
+				const NiPoint3& rPos = pObject->GetWorldTranslate();
+
+				if (rPos.z >= rWaterBound.GetCenter().z)
+					continue;
+
+				const NiPoint3 kDiff = rPos - rWaterBound.GetCenter();
+				if (fabs(kDiff.x) - rWaterBound.GetRadius() > 0.001f || fabs(kDiff.y) - rWaterBound.GetRadius() > 0.001f)
+					continue;
+
+				if (bConsolePrint)
+					Interface::PrintLine("IsObjectUnderwater >> %s", "True");
+
+				*result = 1;
+				return true;
+			}
+		}
+	}
+	if (bConsolePrint)
+		Interface::PrintLine("IsObjectUnderwater >> %s", "False");
+	return true;
+}

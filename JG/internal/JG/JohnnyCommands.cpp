@@ -453,6 +453,7 @@ namespace JohnnyCommands {
 		REG_TYPED_CMD(GetReputationIcon, String);
 		REG_TYPED_CMD(GetReputationFormIcon, String);
 		REG_CMD(SetReputationFormIcon);
+		REG_CMD(IsObjectUnderwater);
 	}
 
 }
