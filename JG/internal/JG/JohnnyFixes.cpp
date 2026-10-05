@@ -259,6 +259,9 @@ namespace JohnnyFixes {
 		TESEffectShaderFixes::Install();
 
 		XMLBufferFix::Install();
+
+		// Nullcheck offset data in TESWorldSpace::GetExtCellDataFromFileByEditorID	
+		HookUtils::SafeWriteBuf(0x585997, "\x85\xC0\x74\xC2\x83\x38\x00\x74\xBD\x90");
 #endif
 
 		FileFixes::Install();
