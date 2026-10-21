@@ -52,30 +52,28 @@ public:
 template<typename T>
 class BSScrapBuffer {
 public:
-	inline BSScrapBuffer(size_t count) {
-		if (BSScrapMemory::hasSpace<T>(count)) [[likely]] {
+	inline BSScrapBuffer(size_t count, void* heap = nullptr) {
+		const size_t allocSize = sizeof(T) * count;
+		localHeap = heap ? heap : BSScrapMemory::heap_get();
+		if (BSScrapMemory::heap_hasSpace(localHeap, allocSize)) [[likely]] {
 			dataCount = count;
-			data = BSScrapMemory::malloc<T>(count);
-			if constexpr (!std::is_trivially_constructible_v<T>) {
-				for (size_t i = 0; i < count; i++) {
-					new (&data[i]) T();
-				}
-			}
+			data = static_cast<T*>(BSScrapMemory::heap_allocate(localHeap, allocSize, alignof(T)));
 		}
 		else [[unlikely]] {
 			dataCount = 0;
 			data = nullptr;
-			assert(false);
 		}
+		constructItems();
 	}
 	inline ~BSScrapBuffer() {
-		if constexpr (!std::is_trivially_destructible_v<T>) {
-			for (size_t i = 0; i < dataCount; i++) {
-				data[i].~T();
-			}
+		if (data) [[likely]] {
+			destructItems();
+			BSScrapMemory::heap_deallocate(localHeap, data);
 		}
-		BSScrapMemory::free(data);
 	}
+
+	BSScrapBuffer(const BSScrapBuffer&) = delete;
+	BSScrapBuffer& operator=(const BSScrapBuffer&) = delete;
 
 	inline T* get() {
 		return data;
@@ -85,7 +83,25 @@ public:
 		return data[index];
 	}
 
-private:
+protected:
 	T*		data;
 	size_t	dataCount;
+	void*	localHeap;
+
+	inline void constructItems() {
+		assert(data);
+		if constexpr (!std::is_trivially_constructible_v<T>) {
+			for (size_t i = 0; i < dataCount; i++) {
+				new (&data[i]) T();
+			}
+		}
+	}
+
+	inline void destructItems() {
+		if constexpr (!std::is_trivially_destructible_v<T>) {
+			for (size_t i = 0; i < dataCount; i++) {
+				data[i].~T();
+			}
+		}
+	}
 };

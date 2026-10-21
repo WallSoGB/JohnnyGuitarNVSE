@@ -8,7 +8,7 @@ namespace BSScrapMemory {
 	extern bool initialize();
 
 	// Returns true if caller thread's ScrapHeap can fit given amount
-	[[nodiscard]] extern bool __fastcall hasSpace(size_t size);
+	[[nodiscard]] extern __declspec(noalias) bool __fastcall hasSpace(size_t size);
 
 	[[nodiscard]] extern __declspec(allocator) __declspec(restrict) void* __cdecl malloc(size_t size);
 	[[nodiscard]] extern __declspec(allocator) __declspec(restrict) void* __cdecl calloc(size_t num, size_t size);
@@ -19,10 +19,10 @@ namespace BSScrapMemory {
 	extern __declspec(noalias) void __cdecl	aligned_free(void* ptr);
 	extern __declspec(noalias) void __cdecl free_aligned_sized(void* ptr, size_t alignment, size_t size);
 
-	extern __declspec(noalias) size_t __cdecl msize(void* ptr);
+	[[nodiscard]] extern __declspec(noalias) size_t __cdecl msize(void* ptr);
 
 	template <typename T>
-	[[nodiscard]] inline bool __fastcall hasSpace(size_t count = 1) {
+	[[nodiscard]] inline __declspec(noalias) bool __fastcall hasSpace(size_t count = 1) {
 		return BSScrapMemory::hasSpace(sizeof(T) * count);
 	};
 
@@ -80,4 +80,18 @@ namespace BSScrapMemory {
 		}
 		BSScrapMemory::aligned_free(ptr);
 	}
+}
+
+namespace BSScrapMemory {
+
+	[[nodiscard]] extern void* __fastcall heap_get();
+
+	[[nodiscard]] extern __declspec(allocator) __declspec(restrict) void* __fastcall heap_allocate(void* heap, size_t size, size_t alignment = 4);
+	
+	extern __declspec(noalias) void __fastcall heap_deallocate(void* heap, void* ptr);
+	
+	[[nodiscard]] extern __declspec(noalias) size_t	__fastcall heap_size(const void* heap, void* ptr);
+	
+	[[nodiscard]] extern __declspec(noalias) bool __fastcall heap_hasSpace(const void* heap, size_t size);
+
 }

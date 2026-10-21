@@ -9,10 +9,11 @@
 #pragma warning(disable: 4100 4201 4244 4324 4505 4530 28159)
 
 #include <windows.h>
-#include <stdint.h>
-#include <stdio.h>
+#include <intrin.h>
+#include <cstdint>
+#include <cstdio>
+#include <cassert>
 #include <cmath>
-#include <assert.h>
 #include <xutility>
 
 #define USE_MODDED_CHANGES 1
